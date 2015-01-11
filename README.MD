@@ -1,10 +1,12 @@
 #Sitemap Generator
+
 ##Features
  - Actually crawls webpages like Google would
  - Generates seperate XML file which gets updated every time the script gets executed (Runnable via CRON)
  - Awesome for SEO
  - Crawls faster than online services
  - Adaptable
+ 
 ##Usage
 Usage is pretty strait forward:
  - Configure the crawler
