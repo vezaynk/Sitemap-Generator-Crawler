@@ -3,8 +3,7 @@
 /*
 Sitemap Generator by Slava Knyazev
 
-Visit my website: http://knyz.org/
-Follow me on Twitter: @ViruZX5
+Website: http://knyz.org/
 I also live on GitHub: https://github.com/viruzx
 Contact me: Slava@KNYZ.org
 */
