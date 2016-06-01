@@ -35,4 +35,13 @@ function Check($uri)
         return false;
     }
 }
+function GetUrlModified($url)
+{
+  $hdr = get_headers($url, 1);
+  if(!empty($hdr['Last-Modified'])){
+    return date('c', strtotime($hdr['Last-Modified']));
+  }else{
+    return false;
+  }
+}
 ?>
