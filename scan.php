@@ -4,8 +4,8 @@ function Scan($url)
     global $scanned, $pf, $skip, $freq, $priority;
     array_push($scanned, $url);
     $html = GetUrl($url);
-    $modified = GetUrlModified($url);
-    $a1   = explode("<a", $html);
+    $modified = getLastModified($html[0]);
+    $a1   = explode("<a", $html[1]);
     foreach ($a1 as $key => $val) {
         $parts      = explode(">", $val);
         $a          = $parts[0];
