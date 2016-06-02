@@ -4,6 +4,7 @@ function Scan($url)
     global $scanned, $pf, $skip, $freq, $priority;
     array_push($scanned, $url);
     $html = GetUrl($url);
+    $modified = GetUrlModified($url);
     $a1   = explode("<a", $html);
     foreach ($a1 as $key => $val) {
         $parts      = explode(">", $val);
@@ -25,7 +26,12 @@ function Scan($url)
                     if (substr($href, 0, strlen($v)) == $v)
                         $ignore = true;
             if ((!$ignore) && (!in_array($href, $scanned)) && Check($href)) {
-                fwrite($pf, "<url>\n  <loc>$href</loc>\n" . "  <changefreq>$freq</changefreq>\n" . "  <priority>$priority</priority>\n</url>\n");
+                
+                $map_row = "<url>\n  <loc>$href</loc>\n" . "  <changefreq>$freq</changefreq>\n" . "  <priority>$priority</priority>\n";
+                if(!empty($modified))$map_row .= "<lastmod>$modified</lastmod>";
+                $map_row .= "</url>\n";
+              
+                fwrite($pf, $map_row);
                 Scan($href);
             }
         }
