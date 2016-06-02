@@ -28,7 +28,7 @@ function Scan($url)
             if ((!$ignore) && (!in_array($href, $scanned)) && Check($href)) {
                 
                 $map_row = "<url>\n  <loc>$href</loc>\n" . "  <changefreq>$freq</changefreq>\n" . "  <priority>$priority</priority>\n";
-                if(!empty($modified))$map_row .= "<lastmod>$modified</lastmod>";
+                if(!empty($modified))$map_row .= "   <lastmod>$modified</lastmod>\n";
                 $map_row .= "</url>\n";
               
                 fwrite($pf, $map_row);

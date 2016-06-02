@@ -26,7 +26,7 @@ Usage is pretty strait forward:
 It is recommended you don't remove the above for future reference.
 */
 $file      = "sitemap.xml";
-$url       = "http://knyz.org";
+$url       = "https://www.knyz.org";
 $extension = array(
     "/",
     "php",
