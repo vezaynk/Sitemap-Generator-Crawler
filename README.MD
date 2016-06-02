@@ -6,6 +6,7 @@
  - Awesome for SEO
  - Crawls faster than online services
  - Adaptable
+ - Also fetches last modified HTTP header (Thanks to @Z01DTech)
  
 ##Usage
 Usage is pretty strait forward:
