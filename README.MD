@@ -10,7 +10,7 @@
  
 ##Usage
 Usage is pretty strait forward:
- - Configure the crawler by modifying the `config.php` file
+ - Configure the crawler by modifying the config section of the `script.php` file
     - Select the file to which the sitemap will be saved
     - Select URL to crawl
     - Select accepted extensions ("/" is manditory for proper functionality)
