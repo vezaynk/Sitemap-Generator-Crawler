@@ -1,12 +1,14 @@
 <?
-//This is only the configuration file, the actual script is generate.php
 /*
 Sitemap Generator by Slava Knyazev
 
-Website: http://knyz.org/
+Website: https://www.knyz.org/
 I also live on GitHub: https://github.com/viruzx
 Contact me: Slava@KNYZ.org
 */
+
+//Make sure to use the latest revision by downloading from github: https://github.com/viruzx/Sitemap-Generator-Crawler
+
 /* Usage
 Usage is pretty strait forward:
 - Configure the crawler
