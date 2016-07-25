@@ -1,4 +1,4 @@
-<?
+<?php
 /*
 Sitemap Generator by Slava Knyazev
 
@@ -72,8 +72,8 @@ function Check($uri)
                 return true;
             }
         }
-        return false;
     }
+    return false;
 }
 function GetUrlModified($url)
 {
@@ -90,42 +90,52 @@ function Scan($url)
     array_push($scanned, $url);
     $html = GetUrl($url);
     $modified = GetUrlModified($url);
-    $a1   = explode("<a", $html);
-    foreach ($a1 as $key => $val) {
-        $parts      = explode(">", $val);
-        $a          = $parts[0];
-        $aparts     = explode("href=", $a);
-        $hrefparts  = explode(" ", $aparts[1]);
-        $hrefparts2 = explode("#", $hrefparts[0]);
-        $href       = str_replace("\"", "", $hrefparts2[0]);
-        if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://") && (substr($href, 0, 6) != "ftp://")) {
-            if ($href[0] == '/')
-                $href = "$scanned[0]$href";
-            else
-                $href = Path($url) . $href;
-        }
-        if (substr($href, 0, strlen($scanned[0])) == $scanned[0]) {
-            $ignore = false;
-            if (isset($skip))
-                foreach ($skip as $k => $v)
-                    if (substr($href, 0, strlen($v)) == $v)
-                        $ignore = true;
-            if ((!$ignore) && (!in_array($href, $scanned)) && Check($href)) {
-                
-                $map_row = "<url>\n  <loc>$href</loc>\n" . "  <changefreq>$freq</changefreq>\n" . "  <priority>$priority</priority>\n";
-                if(!empty($modified))$map_row .= "   <lastmod>$modified</lastmod>\n";
-                $map_row .= "</url>\n";
-              
-                fwrite($pf, $map_row);
-                Scan($href);
+
+    $regexp = "<a\s[^>]*href=(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
+    if (preg_match_all("/$regexp/siU", $html, $matches)) {
+        if ($matches[2]) {
+            $links = $matches[2];
+            unset($matches);
+            foreach ($links as $href) {
+
+                if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://") && (substr($href, 0, 6) != "ftp://")) {
+                    if (isset($href[0]) && $href[0] == '/')
+                        $href = "$scanned[0]$href";
+                    else
+                        $href = Path($url) . $href;
+                }
+                if (substr($href, 0, strlen($scanned[0])) == $scanned[0]) {
+                    $ignore = false;
+                    if (isset($skip))
+                        foreach ($skip as $k => $v)
+                            if (substr($href, 0, strlen($v)) == $v)
+                                $ignore = true;
+                    if ((!$ignore) && (!in_array($href, $scanned)) && Check($href)) {
+
+                        $map_row = "<url>\n  <loc>$href</loc>\n" . "  <changefreq>$freq</changefreq>\n" . "  <priority>$priority</priority>\n";
+                        if (!empty($modified)) $map_row .= "   <lastmod>$modified</lastmod>\n";
+                        $map_row .= "</url>\n";
+
+                        fwrite($pf, $map_row);
+
+                        echo "Added: " . $href . ((!empty($modified))?" [Modified: ".$modified."]":'')."\n";
+
+                        Scan($href);
+                    }
+                }
+
             }
         }
     }
 }
+
+if (endsWith($url, '/')) $url = substr(0, strlen($url)-1);
+
+$start = microtime(true);
 $pf = fopen($file, "w");
 if (!$pf) {
-    echo "cannot create $file\n";
-    return;
+    echo "Error: Could not create file - $file\n";
+    exit;
 }
 fwrite($pf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <urlset
@@ -142,6 +152,6 @@ $scanned = array();
 Scan($url);
 fwrite($pf, "</urlset>\n");
 fclose($pf);
-echo "Sitemap Generated";
+$time_elapsed_secs = microtime(true) - $start;
+echo "Sitemap has been generated in ".$time_elapsed_secs." second".($time_elapsed_secs>=1?'s':'').".\n";
 ?>
-
