@@ -29,6 +29,11 @@ It is recommended you don't remove the above for future reference.
 */
 $file      = "sitemap.xml";
 $url       = "https://www.knyz.org";
+
+$enable_frequency = false;
+$enable_priority = false;
+$enable_modified = false;
+
 $extension = array(
     "/",
     "php",
@@ -86,10 +91,10 @@ function GetUrlModified($url)
 }
 function Scan($url)
 {
-    global $scanned, $pf, $skip, $freq, $priority;
+    global $scanned, $pf, $skip, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency;
     array_push($scanned, $url);
     $html = GetUrl($url);
-    $modified = GetUrlModified($url);
+    if ($enable_modified) $modified = GetUrlModified($url);
 
     $regexp = "<a\s[^>]*href=(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
     if (preg_match_all("/$regexp/siU", $html, $matches)) {
@@ -112,7 +117,10 @@ function Scan($url)
                                 $ignore = true;
                     if ((!$ignore) && (!in_array($href, $scanned)) && Check($href)) {
 
-                        $map_row = "<url>\n  <loc>$href</loc>\n" . "  <changefreq>$freq</changefreq>\n" . "  <priority>$priority</priority>\n";
+                        $map_row = "<url>\n";
+                        $map_row .= "<loc>$href</loc>\n";
+                        if ($enable_frequency) $map_row .= "<changefreq>$freq</changefreq>\n";
+                        if ($enable_priority) $map_row .= "<priority>$priority</priority>\n";
                         if (!empty($modified)) $map_row .= "   <lastmod>$modified</lastmod>\n";
                         $map_row .= "</url>\n";
 
@@ -145,8 +153,7 @@ fwrite($pf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
             http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd\">
 <url>
   <loc>$url/</loc>
-  <changefreq>daily</changefreq>
-</url>
+  ".($enable_frequency?"<changefreq>daily</changefreq>\n":'')."</url>
 ");
 $scanned = array();
 Scan($url);
