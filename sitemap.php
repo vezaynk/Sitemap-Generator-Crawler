@@ -27,6 +27,12 @@ Usage is pretty strait forward:
 
 It is recommended you don't remove the above for future reference.
 */
+
+// Add PHP CLI support
+if (php_sapi_name() === 'cli') {
+    parse_str(implode('&', array_slice($argv, 1)), $args);
+}
+
 $file      = "sitemap.xml";
 $url       = "https://www.knyz.org";
 
@@ -42,6 +48,8 @@ $extension = array(
 );
 $freq      = "daily";
 $priority  = "1";
+
+/* NO NEED TO EDIT BELOW THIS LINE */
 
 function endsWith($haystack, $needle)
 {
@@ -136,6 +144,9 @@ function Scan($url)
         }
     }
 }
+
+if(isset($args['file'])) $file = $args['file'];
+if(isset($args['url'])) $url = $args['url'];
 
 if (endsWith($url, '/')) $url = substr(0, strlen($url)-1);
 

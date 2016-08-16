@@ -10,7 +10,7 @@
  
 ##Usage
 Usage is pretty strait forward:
- - Configure the crawler by modifying the config section of the `script.php` file
+ - Configure the crawler by modifying the config section of the `sitemap.php` file
     - Select the file to which the sitemap will be saved
     - Select URL to crawl
     - Select accepted extensions ("/" is manditory for proper functionality)
@@ -23,3 +23,5 @@ Usage is pretty strait forward:
  - For better results
     - Submit sitemap.xml to Google and not the script itself (Both still work)
     - Setup a CRON Job to send web requests to this script every so often, this will keep the sitemap.xml file up to date
+
+Alternatively, you can run via SSH using CLI `php sitemap.php file=/home/user/public_html/sitemap.xml url=http://www.mywebsite.com/`
