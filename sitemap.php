@@ -122,13 +122,18 @@ function Scan($url)
                 unset($matches);
                 foreach ($links as $href) {
 
+
                     if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://") && (substr($href, 0, 6) != "ftp://")) {
-                        if (isset($href[0]) && $href[0] == '/')
-                            $href = "$scanned[0]$href";
-                        else
+                        // If href does not starts with http:, https: or ftp:
+                        if ($href == '/') {
+                            $href = $scanned[0] . $href;
+                        } else {
                             $href = Path($url) . $href;
+                        }
                     }
+
                     if (substr($href, 0, strlen($scanned[0])) == $scanned[0]) {
+                        // If href is a sub of the scanned url
                         $ignore = false;
                         if (isset($skip))
                             foreach ($skip as $k => $v)
