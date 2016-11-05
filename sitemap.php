@@ -69,6 +69,11 @@ function Path($p)
     return (substr($p, 0, strlen($p) - $len));
 }
 
+function domain_root($href) {
+    $url_parts = explode('/', $href);
+    return $url_parts[0].'//'.$url_parts[2].'/';
+}
+
 function GetUrl($url)
 {
     $ch = curl_init();
@@ -127,6 +132,8 @@ function Scan($url)
                         // If href does not starts with http:, https: or ftp:
                         if ($href == '/') {
                             $href = $scanned[0] . $href;
+                        } elseif (substr($href, 0, 1) == '/') {
+                            $href = domain_root($scanned[0]) . substr($href, 1);
                         } else {
                             $href = Path($url) . $href;
                         }
