@@ -33,8 +33,10 @@ if (php_sapi_name() === 'cli') {
     parse_str(implode('&', array_slice($argv, 1)), $args);
 }
 
-$file      = "sitemap.xml";
-$url       = "https://www.knyz.org";
+$file = "sitemap.xml";
+$url = "https://www.knyz.org";
+
+$max_depth = 0;
 
 $enable_frequency = false;
 $enable_priority = false;
@@ -46,8 +48,8 @@ $extension = array(
     "html",
     "htm"
 );
-$freq      = "daily";
-$priority  = "1";
+$freq = "daily";
+$priority = "1";
 
 /* NO NEED TO EDIT BELOW THIS LINE */
 
@@ -59,12 +61,14 @@ function endsWith($haystack, $needle)
     }
     return (substr($haystack, -$length) === $needle);
 }
+
 function Path($p)
 {
-    $a   = explode("/", $p);
+    $a = explode("/", $p);
     $len = strlen($a[count($a) - 1]);
     return (substr($p, 0, strlen($p) - $len));
 }
+
 function GetUrl($url)
 {
     $ch = curl_init();
@@ -75,6 +79,7 @@ function GetUrl($url)
     curl_close($ch);
     return $data;
 }
+
 function Check($uri)
 {
     global $extension;
@@ -88,67 +93,75 @@ function Check($uri)
     }
     return false;
 }
+
 function GetUrlModified($url)
 {
-  $hdr = get_headers($url, 1);
-  if(!empty($hdr['Last-Modified'])){
-    return date('c', strtotime($hdr['Last-Modified']));
-  }else{
-    return false;
-  }
-}
-function Scan($url)
-{
-    global $scanned, $pf, $skip, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency;
-    array_push($scanned, $url);
-    $html = GetUrl($url);
-    if ($enable_modified) $modified = GetUrlModified($url);
-
-    $regexp = "<a\s[^>]*href=(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
-    if (preg_match_all("/$regexp/siU", $html, $matches)) {
-        if ($matches[2]) {
-            $links = $matches[2];
-            unset($matches);
-            foreach ($links as $href) {
-
-                if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://") && (substr($href, 0, 6) != "ftp://")) {
-                    if (isset($href[0]) && $href[0] == '/')
-                        $href = "$scanned[0]$href";
-                    else
-                        $href = Path($url) . $href;
-                }
-                if (substr($href, 0, strlen($scanned[0])) == $scanned[0]) {
-                    $ignore = false;
-                    if (isset($skip))
-                        foreach ($skip as $k => $v)
-                            if (substr($href, 0, strlen($v)) == $v)
-                                $ignore = true;
-                    if ((!$ignore) && (!in_array($href, $scanned)) && Check($href)) {
-
-                        $map_row = "<url>\n";
-                        $map_row .= "<loc>$href</loc>\n";
-                        if ($enable_frequency) $map_row .= "<changefreq>$freq</changefreq>\n";
-                        if ($enable_priority) $map_row .= "<priority>$priority</priority>\n";
-                        if (!empty($modified)) $map_row .= "   <lastmod>$modified</lastmod>\n";
-                        $map_row .= "</url>\n";
-
-                        fwrite($pf, $map_row);
-
-                        echo "Added: " . $href . ((!empty($modified))?" [Modified: ".$modified."]":'')."\n";
-
-                        Scan($href);
-                    }
-                }
-
-            }
-        }
+    $hdr = get_headers($url, 1);
+    if (!empty($hdr['Last-Modified'])) {
+        return date('c', strtotime($hdr['Last-Modified']));
+    } else {
+        return false;
     }
 }
 
-if(isset($args['file'])) $file = $args['file'];
-if(isset($args['url'])) $url = $args['url'];
+function Scan($url)
+{
+    global $scanned, $pf, $skip, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth;
+    array_push($scanned, $url);
+    $depth++;
 
-if (endsWith($url, '/')) $url = substr(0, strlen($url)-1);
+    if (isset($max_depth) && ($depth <= $max_depth || $max_depth == 0)) {
+
+        $html = GetUrl($url);
+        if ($enable_modified) $modified = GetUrlModified($url);
+
+        $regexp = "<a\s[^>]*href=(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
+        if (preg_match_all("/$regexp/siU", $html, $matches)) {
+            if ($matches[2]) {
+                $links = $matches[2];
+                unset($matches);
+                foreach ($links as $href) {
+
+                    if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://") && (substr($href, 0, 6) != "ftp://")) {
+                        if (isset($href[0]) && $href[0] == '/')
+                            $href = "$scanned[0]$href";
+                        else
+                            $href = Path($url) . $href;
+                    }
+                    if (substr($href, 0, strlen($scanned[0])) == $scanned[0]) {
+                        $ignore = false;
+                        if (isset($skip))
+                            foreach ($skip as $k => $v)
+                                if (substr($href, 0, strlen($v)) == $v)
+                                    $ignore = true;
+                        if ((!$ignore) && (!in_array($href, $scanned)) && Check($href)) {
+
+                            $map_row = "<url>\n";
+                            $map_row .= "<loc>$href</loc>\n";
+                            if ($enable_frequency) $map_row .= "<changefreq>$freq</changefreq>\n";
+                            if ($enable_priority) $map_row .= "<priority>$priority</priority>\n";
+                            if (!empty($modified)) $map_row .= "   <lastmod>$modified</lastmod>\n";
+                            $map_row .= "</url>\n";
+
+                            fwrite($pf, $map_row);
+
+                            echo "Added: " . $href . ((!empty($modified)) ? " [Modified: " . $modified . "]" : '') . "\n";
+
+                            Scan($href);
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+    $depth--;
+}
+
+if (isset($args['file'])) $file = $args['file'];
+if (isset($args['url'])) $url = $args['url'];
+
+if (endsWith($url, '/')) $url = substr(0, strlen($url) - 1);
 
 $start = microtime(true);
 $pf = fopen($file, "w");
@@ -164,12 +177,13 @@ fwrite($pf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
             http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd\">
 <url>
   <loc>$url/</loc>
-  ".($enable_frequency?"<changefreq>daily</changefreq>\n":'')."</url>
+  " . ($enable_frequency ? "<changefreq>daily</changefreq>\n" : '') . "</url>
 ");
+$depth = 0;
 $scanned = array();
 Scan($url);
 fwrite($pf, "</urlset>\n");
 fclose($pf);
 $time_elapsed_secs = microtime(true) - $start;
-echo "Sitemap has been generated in ".$time_elapsed_secs." second".($time_elapsed_secs>=1?'s':'').".\n";
+echo "Sitemap has been generated in " . $time_elapsed_secs . " second" . ($time_elapsed_secs >= 1 ? 's' : '') . ".\n";
 ?>
