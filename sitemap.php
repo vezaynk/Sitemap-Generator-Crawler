@@ -163,7 +163,7 @@ function Scan($url)
 if (isset($args['file'])) $file = $args['file'];
 if (isset($args['url'])) $url = $args['url'];
 
-if (endsWith($url, '/')) $url = substr(0, strlen($url) - 1);
+if (endsWith($url, '/')) $url = substr($url, 0, strlen($url) - 1);
 
 $start = microtime(true);
 $pf = fopen($file, "w");
