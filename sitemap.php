@@ -80,9 +80,12 @@ function GetUrl($url)
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_HEADER, 1);
     $data = curl_exec($ch);
+    $timestamp = curl_getinfo($ch, CURLINFO_FILETIME);
     curl_close($ch);
-    return $data;
+    $modified = date('c', strtotime($timestamp));
+    return array($data, $modified);
 }
 
 function Check($uri)
@@ -99,16 +102,6 @@ function Check($uri)
     return false;
 }
 
-function GetUrlModified($url)
-{
-    $hdr = get_headers($url, 1);
-    if (!empty($hdr['Last-Modified'])) {
-        return date('c', strtotime($hdr['Last-Modified']));
-    } else {
-        return false;
-    }
-}
-
 function Scan($url)
 {
     global $scanned, $pf, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth;
@@ -117,8 +110,8 @@ function Scan($url)
 
     if (isset($max_depth) && ($depth <= $max_depth || $max_depth == 0)) {
 
-        $html = GetUrl($url);
-        if ($enable_modified) $modified = GetUrlModified($url);
+        list($html, $modified) = GetUrl($url);
+        if ($enable_modified != true) unset($modified);
 
         $regexp = "<a\s[^>]*href=(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
         if (preg_match_all("/$regexp/siU", $html, $matches)) {
