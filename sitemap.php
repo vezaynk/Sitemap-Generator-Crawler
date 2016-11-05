@@ -111,7 +111,7 @@ function GetUrlModified($url)
 
 function Scan($url)
 {
-    global $scanned, $pf, $skip, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth;
+    global $scanned, $pf, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth;
     array_push($scanned, $url);
     $depth++;
 
@@ -142,10 +142,7 @@ function Scan($url)
                     if (substr($href, 0, strlen($scanned[0])) == $scanned[0]) {
                         // If href is a sub of the scanned url
                         $ignore = false;
-                        if (isset($skip))
-                            foreach ($skip as $k => $v)
-                                if (substr($href, 0, strlen($v)) == $v)
-                                    $ignore = true;
+
                         if ((!$ignore) && (!in_array($href, $scanned)) && Check($href)) {
 
                             $map_row = "<url>\n";
