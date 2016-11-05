@@ -147,7 +147,7 @@ function Scan($url)
 
                             fwrite($pf, $map_row);
 
-                            echo str_repeat('-', $depth) . " Added: " . $href . ((!empty($modified)) ? " [Modified: " . $modified . "]" : '') . "\n";
+                            echo "Added: " . $href . ((!empty($modified)) ? " [Modified: " . $modified . "]" : '') . "\n";
 
                             Scan($href);
                         }
