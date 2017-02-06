@@ -137,7 +137,7 @@ function Scan($url)
                         // If href is a sub of the scanned url
                         $ignore = false;
 
-                        if ((!$ignore) && (!in_array($href, $scanned)) && Check($href)) {
+                        if ((!$ignore) && (!in_array($href . ($query_string?'?'.$query_string:''), $scanned)) && Check($href)) {
 
                             $href = $href . ($query_string?'?'.$query_string:'');
 
