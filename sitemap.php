@@ -188,4 +188,3 @@ fwrite($pf, "</urlset>\n");
 fclose($pf);
 $time_elapsed_secs = microtime(true) - $start;
 echo "Sitemap has been generated in " . $time_elapsed_secs . " second" . ($time_elapsed_secs >= 1 ? 's' : '') . ".\n";
-?>
