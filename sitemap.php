@@ -120,6 +120,7 @@ function Scan($url)
                 unset($matches);
                 foreach ($links as $href) {
 
+                    list($href, $query_string) = explode('?', $href);
 
                     if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://") && (substr($href, 0, 6) != "ftp://")) {
                         // If href does not starts with http:, https: or ftp:
@@ -137,6 +138,8 @@ function Scan($url)
                         $ignore = false;
 
                         if ((!$ignore) && (!in_array($href, $scanned)) && Check($href)) {
+
+                            $href = $href . ($query_string?'?'.$query_string:'');
 
                             $map_row = "<url>\n";
                             $map_row .= "<loc>$href</loc>\n";
