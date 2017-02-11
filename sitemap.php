@@ -120,6 +120,8 @@ function Scan($url)
                 unset($matches);
                 foreach ($links as $href) {
 
+                    if (strpos($href, '?') !== false) list($href, $query_string) = explode('?', $href);
+                    else $query_string = '';
 
                     if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://") && (substr($href, 0, 6) != "ftp://")) {
                         // If href does not starts with http:, https: or ftp:
@@ -136,7 +138,9 @@ function Scan($url)
                         // If href is a sub of the scanned url
                         $ignore = false;
 
-                        if ((!$ignore) && (!in_array($href, $scanned)) && Check($href)) {
+                        if ((!$ignore) && (!in_array($href . ($query_string?'?'.$query_string:''), $scanned)) && Check($href)) {
+
+                            $href = $href . ($query_string?'?'.$query_string:'');
 
                             $map_row = "<url>\n";
                             $map_row .= "<loc>$href</loc>\n";
@@ -185,4 +189,3 @@ fwrite($pf, "</urlset>\n");
 fclose($pf);
 $time_elapsed_secs = microtime(true) - $start;
 echo "Sitemap has been generated in " . $time_elapsed_secs . " second" . ($time_elapsed_secs >= 1 ? 's' : '') . ".\n";
-?>
