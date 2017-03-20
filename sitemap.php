@@ -42,12 +42,19 @@ $enable_frequency = false;
 $enable_priority = false;
 $enable_modified = false;
 
-$extension = array(
+$allowedExtensions = array(
     "/",
     "php",
     "html",
     "htm"
 );
+
+//The pages will not be crawled and will not be included in sitemap
+$blacklist = array(
+    "https://www.knyz.org/privatepage1",
+    "https://www.knyz.org/privatepage2"
+);
+
 $freq = "daily";
 $priority = "1";
 
@@ -88,18 +95,32 @@ function GetUrl($url)
     return array($data, $modified);
 }
 
-function Check($uri)
+function CheckExtension($uri)
 {
-    global $extension;
-    if (is_array($extension)) {
+    global $allowedExtensions;
+    if (is_array($allowedExtensions)) {
         $string = $uri;
-        foreach ($extension as $url) {
-            if (endsWith($string, $url) !== FALSE) {
+        foreach ($allowedExtensions as $ext) {
+            if (endsWith($string, $ext) !== FALSE) {
                 return true;
             }
         }
     }
     return false;
+}
+
+function CheckBlacklist($uri)
+{
+    global $blacklist;
+    if (is_array($blacklist)) {
+        $string = $uri;
+        foreach ($blacklist as $url) {
+            if ($string === $url) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 function Scan($url)
@@ -138,7 +159,7 @@ function Scan($url)
                         // If href is a sub of the scanned url
                         $ignore = false;
 
-                        if ((!$ignore) && (!in_array($href . ($query_string?'?'.$query_string:''), $scanned)) && Check($href)) {
+                        if ((!$ignore) && (!in_array($href . ($query_string?'?'.$query_string:''), $scanned)) && CheckExtension($href) && CheckBlackList($href)) {
 
                             $href = $href . ($query_string?'?'.$query_string:'');
 
