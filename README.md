@@ -1,4 +1,4 @@
-#Sitemap Generator
+#Sitemap Generator#
 
 ##Features
  - Actually crawls webpages like Google would
