@@ -1,6 +1,6 @@
-#Sitemap Generator#
+# Sitemap Generator
 
-##Features
+## Features
  - Actually crawls webpages like Google would
  - Generates seperate XML file which gets updated every time the script gets executed (Runnable via CRON)
  - Awesome for SEO
@@ -8,7 +8,7 @@
  - Adaptable
  - Also fetches last modified HTTP header (Thanks to @Z01DTech)
  
-##Usage
+## Usage
 Usage is pretty strait forward:
  - Configure the crawler by modifying the config section of the `sitemap.php` file
     - Select the file to which the sitemap will be saved
