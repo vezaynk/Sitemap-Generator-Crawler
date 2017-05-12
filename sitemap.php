@@ -3,11 +3,11 @@
 Sitemap Generator by Slava Knyazev
 
 Website: https://www.knyz.org/
-I also live on GitHub: https://github.com/viruzx
+I also live on GitHub: https://github.com/knyzorg
 Contact me: Slava@KNYZ.org
 */
 
-//Make sure to use the latest revision by downloading from github: https://github.com/viruzx/Sitemap-Generator-Crawler
+//Make sure to use the latest revision by downloading from github: https://github.com/knyzorg/Sitemap-Generator-Crawler
 
 /* Usage
 Usage is pretty strait forward:
@@ -15,6 +15,7 @@ Usage is pretty strait forward:
 - Select the file to which the sitemap will be saved
 - Select URL to crawl
 - Select accepted extensions ("/" is manditory for proper functionality)
+- Configure blacklists, accepts the use of wildcards (example: http://example.com/private/*) 
 - Select change frequency (always, daily, weekly, monthly, never, etc...)
 - Choose priority (It is all relative so it may as well be 1)
 - Generate sitemap
@@ -51,7 +52,7 @@ $allowedExtensions = array(
 
 //The pages will not be crawled and will not be included in sitemap
 $blacklist = array(
-    "https://www.knyz.org/privatepage1",
+    "https://www.knyz.org/blog/post/*",
     "https://www.knyz.org/privatepage2"
 );
 
@@ -109,13 +110,14 @@ function CheckExtension($uri)
     return false;
 }
 
+
 function CheckBlacklist($uri)
 {
     global $blacklist;
     if (is_array($blacklist)) {
         $string = $uri;
-        foreach ($blacklist as $url) {
-            if ($string === $url) {
+        foreach ($blacklist as $illegal) {
+            if (fnmatch($illegal,$string)) {
                 return false;
             }
         }
