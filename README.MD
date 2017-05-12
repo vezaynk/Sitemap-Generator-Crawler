@@ -14,6 +14,7 @@ Usage is pretty strait forward:
     - Select the file to which the sitemap will be saved
     - Select URL to crawl
     - Select accepted extensions ("/" is manditory for proper functionality)
+    - Configure blacklists, accepts the use of wildcards (example: http://example.com/private/*) 
     - Select change frequency (always, daily, weekly, monthly, never, etc...)
     - Choose priority (It is all relative so it may as well be 1)
  - Generate sitemap
