@@ -136,7 +136,7 @@ function Scan($url)
         list($html, $modified) = GetUrl($url);
         if ($enable_modified != true) unset($modified);
 
-        $regexp = "<a\s[^>]*href=(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
+        $regexp = "<a\s[^>]*href=(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
         if (preg_match_all("/$regexp/siU", $html, $matches)) {
             if ($matches[2]) {
                 $links = $matches[2];
