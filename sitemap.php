@@ -34,7 +34,7 @@ if (php_sapi_name() === 'cli') {
 }
 
 $file = "sitemap.xml";
-$target = "https://www.make-emotions.ru";
+$target = "https://www.knyz.org";
 
 $max_depth = 0;
 
