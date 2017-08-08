@@ -19,10 +19,10 @@ Usage is pretty strait forward:
     - Choose priority (It is all relative so it may as well be 1)
  - Generate sitemap
     - Either send a GET request to this script or simply point your browser
-    - A sitemap will be generated and displayed
+    - A sitemap will be generated and saved
     - Submit to Google
  - For better results
-    - Submit sitemap.xml to Google and not the script itself (Both still work)
+    - Submit sitemap.xml to Google and not the script itself
     - Setup a CRON Job to send web requests to this script every so often, this will keep the sitemap.xml file up to date
 
 Alternatively, you can run via SSH using CLI `php sitemap.php file=/home/user/public_html/sitemap.xml url=http://www.mywebsite.com/`

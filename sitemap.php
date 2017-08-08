@@ -20,10 +20,9 @@ Usage is pretty strait forward:
 - Choose priority (It is all relative so it may as well be 1)
 - Generate sitemap
 - Either send a GET request to this script or simply point your browser
-- A sitemap will be generated and displayed
 - Submit to Google
 - For better results
-- Submit sitemap.xml to Google and not the script itself (Both still work)
+- Submit sitemap.xml to Google and not the script itself
 - Setup a CRON Job to send web requests to this script every so often, this will keep the sitemap.xml file up to date
 
 It is recommended you don't remove the above for future reference.
@@ -36,7 +35,6 @@ if (php_sapi_name() === 'cli') {
 
 $file = "sitemap.xml";
 $target = "https://www.knyz.org";
-//$target = "http://www.make-emotions.ru";
 
 $max_depth = 0;
 
@@ -213,8 +211,6 @@ function Scan($url)
 
 if (isset($args['file'])) $file = $args['file'];
 if (isset($args['url'])) $url = $args['url'];
-
-//if (endsWith($target, '/')) $target = substr($url, 0, strlen($url) - 1);
 
 $start = microtime(true);
 $pf = fopen($file, "w");
