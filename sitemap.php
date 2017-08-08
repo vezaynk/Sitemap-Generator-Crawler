@@ -57,6 +57,7 @@ $blacklist = array(
 
 $freq = "daily";
 $priority = "1";
+$validate_certificate = true;
 
 /* NO NEED TO EDIT BELOW THIS LINE */
 
@@ -88,6 +89,7 @@ function GetData($url)
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_HEADER, 1);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $validate_certificate ;
     $html = curl_exec($ch);
     $timestamp = curl_getinfo($ch, CURLINFO_FILETIME);
     curl_close($ch);
