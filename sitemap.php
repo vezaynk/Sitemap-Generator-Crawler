@@ -57,7 +57,7 @@ $blacklist = array(
 
 $freq = "daily";
 $priority = "1";
-$curl_validate_certificate = false;
+$curl_validate_certificate = true;
 
 /* NO NEED TO EDIT BELOW THIS LINE */
 
