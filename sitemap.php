@@ -34,7 +34,7 @@ if (php_sapi_name() === 'cli') {
 }
 
 $file = "sitemap.xml";
-$target = "https://www.knyz.org";
+$target = "https://www.make-emotions.ru";
 
 $max_depth = 0;
 
@@ -57,7 +57,7 @@ $blacklist = array(
 
 $freq = "daily";
 $priority = "1";
-$validate_certificate = true;
+$curl_validate_certificate = false;
 
 /* NO NEED TO EDIT BELOW THIS LINE */
 
@@ -84,12 +84,13 @@ function domain_root($href) {
 
 function GetData($url)
 {
+    global $curl_validate_certificate;
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_HEADER, 1);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $validate_certificate ;
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $curl_validate_certificate);
     $html = curl_exec($ch);
     $timestamp = curl_getinfo($ch, CURLINFO_FILETIME);
     curl_close($ch);
@@ -139,8 +140,6 @@ function Scan($url)
         list($html, $modified) = GetData($url);
         if (!$enable_modified) unset($modified);
 
-        var_dump($html);
-
         $regexp = "<a\s[^>]*href=(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
         if (preg_match_all("/$regexp/siU", $html, $matches)) {
             if ($matches[2]) {
@@ -164,10 +163,14 @@ function Scan($url)
                             $href = Path($url) . $href;
                         }
                     }
-                    echo "[+] Result: $href\n";
-                    if (true) {
+                        echo "[+] Result: $href\n";
                         //Assume that URL is okay until it isn't
                         $valid = true;
+
+                        if (!filter_var($href, FILTER_VALIDATE_URL)) {
+                            echo "[-] URL is not valid. Rejecting.\n";
+                            $valid = false;
+                        }
 
                         if (substr($href, 0, strlen($target)) != $target){
                             echo "[-] URL is not part of the target domain. Rejecting.\n";
@@ -202,7 +205,6 @@ function Scan($url)
 
                             Scan($href);
                         }
-                    }
 
                 }
             }
