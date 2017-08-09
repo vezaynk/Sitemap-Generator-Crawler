@@ -14,15 +14,10 @@ Usage is pretty strait forward:
 - Configure the crawler
 - Select the file to which the sitemap will be saved
 - Select URL to crawl
-- Select accepted extensions ("/" is manditory for proper functionality)
-- Configure blacklists, accepts the use of wildcards (example: http://example.com/private/*) 
-- Select change frequency (always, daily, weekly, monthly, never, etc...)
-- Choose priority (It is all relative so it may as well be 1)
+- Configure blacklists, accepts the use of wildcards (example: http://example.com/private/* and *.jpg)
 - Generate sitemap
 - Either send a GET request to this script or simply point your browser
 - Submit to Google
-- For better results
-- Submit sitemap.xml to Google and not the script itself
 - Setup a CRON Job to send web requests to this script every so often, this will keep the sitemap.xml file up to date
 
 It is recommended you don't remove the above for future reference.
@@ -33,31 +28,37 @@ if (php_sapi_name() === 'cli') {
     parse_str(implode('&', array_slice($argv, 1)), $args);
 }
 
-$file = "sitemap.xml";
+//Site to crawl
 $target = "https://www.knyz.org";
 
-$max_depth = 0;
+//Location to save file
+$file = "sitemap.xml";
 
+//If you don't know what these do, don't touch them ;)
+$max_depth = 0;
 $enable_frequency = false;
 $enable_priority = false;
 $enable_modified = false;
-
-$allowedExtensions = array(
-    "/",
-    "php",
-    "html",
-    "htm"
-);
-
-//The pages will not be crawled and will not be included in sitemap
-$blacklist = array(
-    "https://www.knyz.org/blog/post/secret/*",
-    "https://www.knyz.org/privatepage2"
-);
-
+$curl_validate_certificate = true;
 $freq = "daily";
 $priority = "1";
-$curl_validate_certificate = true;
+
+//The pages will not be crawled and will not be included in sitemap
+//Use this list to exlude non-html files to increase performance and save bandwidth
+$blacklist = array(
+    "*.jpg",
+    "*.png",
+    "*/secretstuff/*"
+);
+
+
+
+/* Coming soon
+$debug = Array(
+    "add" => true,
+    "reject" => true,
+    "manipulation" => true
+);*/
 
 /* NO NEED TO EDIT BELOW THIS LINE */
 
@@ -91,25 +92,14 @@ function GetData($url)
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_HEADER, 1);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $curl_validate_certificate);
-    $html = curl_exec($ch);
+    $data = curl_exec($ch);
+    $content_type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $html = ($http_code != 200 || (!stripos($content_type, "html"))) ? false : $data;
     $timestamp = curl_getinfo($ch, CURLINFO_FILETIME);
     curl_close($ch);
     $modified = date('c', strtotime($timestamp));
     return array($html, $modified);
-}
-
-function CheckExtension($uri)
-{
-    global $allowedExtensions;
-    if (is_array($allowedExtensions)) {
-        $string = $uri;
-        foreach ($allowedExtensions as $ext) {
-            if (endsWith($string, $ext) === true) {
-                return true;
-            }
-        }
-    }
-    return false;
 }
 
 
@@ -129,16 +119,38 @@ function CheckBlacklist($uri)
 
 function Scan($url)
 {
-    echo "[+] Scanning $url\n";
-
     global $scanned, $pf, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth, $target;
-    array_push($scanned, $url);
     $depth++;
+    
+    $proceed = true;
+    echo "[!] Scanning $url\n";
+    
+    
+    array_push($scanned, $url);
+    list($html, $modified) = GetData($url);
+    if (!$html){
+        echo "[-] Invalid Document. Rejecting. \n";
+        $proceed = false;
+    }
 
-    if ($depth <= $max_depth || $max_depth == 0) {
+    elseif (!($depth <= $max_depth || $max_depth == 0)){
+        echo "[-] Maximum depth exceeded. Rejecting. \n";
+        $proceed = false;
+    }
+    if ($proceed) {
 
-        list($html, $modified) = GetData($url);
+        
         if (!$enable_modified) unset($modified);
+
+        $map_row = "<url>\n";
+        $map_row .= "<loc>$url</loc>\n";
+        if ($enable_frequency) $map_row .= "<changefreq>$freq</changefreq>\n";
+        if ($enable_priority) $map_row .= "<priority>$priority</priority>\n";
+        if (!empty($modified)) $map_row .= "   <lastmod>$modified</lastmod>\n";
+        $map_row .= "</url>\n";
+        fwrite($pf, $map_row);
+
+        echo "[+] Added: " . $url . ((!empty($modified)) ? " [Modified: " . $modified . "]" : '') . "\n";
 
         $regexp = "<a\s[^>]*href=(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
         if (preg_match_all("/$regexp/siU", $html, $matches)) {
@@ -149,20 +161,26 @@ function Scan($url)
                     if (strpos($href, '?') !== false) list($href, $query_string) = explode('?', $href);
                     else $query_string = '';
 
+                    if (strpos($href, "#") !== false){
+                        echo "[!] Dropping pound.";
+                        $href = strtok($href, "#");
+                    }
                     if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://")) {
                         // Link does not call (potentially) external page
+                        
                         if ($href == '/') {
-                            echo "[+] $href is domain root\n";
+                            echo "[!] $href is domain root\n";
                             $href = $target . $href;
-                        } elseif (substr($href, 0, 1) == '/') {
-                            echo "[+] $href is relative to root, convert to absolute\n";
+                        }
+                        elseif (substr($href, 0, 1) == '/') {
+                            echo "[!] $href is relative to root, convert to absolute\n";
                             $href = domain_root($target) . substr($href, 1);
                         } else {
-                            echo "[+] $href is relative, convert to absolute\n";
+                            echo "[!] $href is relative, convert to absolute\n";
                             $href = Path($url) . $href;
                         }
                     }
-                        echo "[+] Result: $href\n";
+                        echo "[!] Result: $href\n";
                         //Assume that URL is okay until it isn't
                         $valid = true;
 
@@ -179,10 +197,6 @@ function Scan($url)
                             echo "[-] URL has already been scanned. Rejecting.\n";
                             $valid = false;
                         }
-                        if (!CheckExtension($href)){
-                            echo "[-] URL does not have an accepted extension. Rejecting.\n";
-                            $valid = false;
-                        }
                         if (!CheckBlacklist($href)){
                             echo "[-] URL is blacklisted. Rejecting.\n";
                             $valid = false;
@@ -191,17 +205,7 @@ function Scan($url)
 
                             $href = $href . ($query_string?'?'.$query_string:'');
 
-                            $map_row = "<url>\n";
-                            $map_row .= "<loc>$href</loc>\n";
-                            if ($enable_frequency) $map_row .= "<changefreq>$freq</changefreq>\n";
-                            if ($enable_priority) $map_row .= "<priority>$priority</priority>\n";
-                            if (!empty($modified)) $map_row .= "   <lastmod>$modified</lastmod>\n";
-                            $map_row .= "</url>\n";
-
-                            fwrite($pf, $map_row);
-
-                            echo "[+] Added: " . $href . ((!empty($modified)) ? " [Modified: " . $modified . "]" : '') . "\n";
-
+                            
                             Scan($href);
                         }
 
