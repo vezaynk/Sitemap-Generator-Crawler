@@ -52,6 +52,7 @@ $blacklist = array(
 );
 
 
+/* NO NEED TO EDIT BELOW THIS LINE */
 
 /* Coming soon
 $debug = Array(
@@ -59,8 +60,6 @@ $debug = Array(
     "reject" => true,
     "manipulation" => true
 );*/
-
-/* NO NEED TO EDIT BELOW THIS LINE */
 
 function endsWith($haystack, $needle)
 {
