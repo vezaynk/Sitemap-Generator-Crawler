@@ -149,8 +149,7 @@ function Scan($url)
                     if (strpos($href, '?') !== false) list($href, $query_string) = explode('?', $href);
                     else $query_string = '';
 
-                    if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://") && (substr($href, 0, 6) != "ftp://")) {
-                        // If href does not starts with http:, https: or ftp:
+                    if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://")) {
                         // Link does not call (potentially) external page
                         if ($href == '/') {
                             echo "[+] $href is domain root\n";
