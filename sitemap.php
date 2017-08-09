@@ -212,7 +212,7 @@ function Scan($url)
     }
     $depth--;
 }
-
+header("Content-Type: text/plain");
 if (isset($args['file'])) $file = $args['file'];
 if (isset($args['url'])) $url = $args['url'];
 
