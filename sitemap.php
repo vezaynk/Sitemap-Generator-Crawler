@@ -34,12 +34,20 @@ $target = "https://www.knyz.org";
 //Location to save file
 $file = "sitemap.xml";
 
-//If you don't know what these do, don't touch them ;)
+//How many layers of recursion are you on, dude?
 $max_depth = 0;
+
+//These two are relative. It's pointless to enable them unless if you intend to modify the sitemap later.
 $enable_frequency = false;
 $enable_priority = false;
+
+//Tells search engines the last time the page was modified according to your software
 $enable_modified = true;
+
+//Some sites have misconfigured but tolerable SSL. Enable this for those cases.
 $curl_validate_certificate = true;
+
+//Relative stuff, ignore it
 $freq = "daily";
 $priority = "1";
 
@@ -54,12 +62,29 @@ $blacklist = array(
 
 /* NO NEED TO EDIT BELOW THIS LINE */
 
-/* Coming soon
 $debug = Array(
     "add" => true,
-    "reject" => true,
-    "manipulation" => true
-);*/
+    "reject" => false,
+    "warn" => false
+);
+
+function logger($message, $type){
+    global $debug;
+    switch ($type) {
+    case 0:
+        //add
+        echo $debug["add"] ? "[+] $message \n" : "";
+        break;
+    case 1:
+        //reject
+        echo $debug["reject"] ? "[-] $message \n" : "";
+        break;
+    case 2:
+        //manipulate
+        echo $debug["warn"] ? "[!] $message \n" : "";
+        break;
+    }
+}
 
 function endsWith($haystack, $needle)
 {
@@ -95,7 +120,7 @@ function GetData($url)
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $redirect_url = curl_getinfo($ch, CURLINFO_REDIRECT_URL);
     if ($redirect_url){
-        echo "[-] URL is a redirect. \n";
+        logger("URL is a redirect.", 1);
         Scan($redirect_url);
     }
     $html = ($http_code != 200 || (!stripos($content_type, "html"))) ? false : $data;
@@ -126,18 +151,18 @@ function Scan($url)
     $depth++;
     
     $proceed = true;
-    echo "[!] Scanning $url\n";
+    logger("Scanning $url", 2);
     
     
     array_push($scanned, $url);
     list($html, $modified) = GetData($url);
     if (!$html){
-        echo "[-] Invalid Document. Rejecting. \n";
+        logger("Invalid Document. Rejecting.", 1);
         $proceed = false;
     }
 
     elseif (!($depth <= $max_depth || $max_depth == 0)){
-        echo "[-] Maximum depth exceeded. Rejecting. \n";
+        logger("Maximum depth exceeded. Rejecting.", 1);
         $proceed = false;
     }
     if ($proceed) {
@@ -153,55 +178,55 @@ function Scan($url)
         $map_row .= "</url>\n";
         fwrite($pf, $map_row);
 
-        echo "[+] Added: " . $url . ((!empty($modified)) ? " [Modified: " . $modified . "]" : '') . "\n";
+        logger("Added: " . $url . ((!empty($modified)) ? " [Modified: " . $modified . "]" : ''), 0);
 
         $regexp = "<a\s[^>]*href=(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
         if (preg_match_all("/$regexp/siU", $html, $matches)) {
             if ($matches[2]) {
                 $links = $matches[2];
                 foreach ($links as $href) {
-                    echo "[+] Found $href\n";
+                    logger("Found $href", 2);
                     if (strpos($href, '?') !== false) list($href, $query_string) = explode('?', $href);
                     else $query_string = '';
 
                     if (strpos($href, "#") !== false){
-                        echo "[!] Dropping pound.";
+                        logger("Dropping pound.", 2);
                         $href = strtok($href, "#");
                     }
                     if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://")) {
                         // Link does not call (potentially) external page
                         
                         if ($href == '/') {
-                            echo "[!] $href is domain root\n";
+                            logger("$href is domain root", 2);
                             $href = $target . $href;
                         }
                         elseif (substr($href, 0, 1) == '/') {
-                            echo "[!] $href is relative to root, convert to absolute\n";
+                            logger("$href is relative to root, convert to absolute", 2);
                             $href = domain_root($target) . substr($href, 1);
                         } else {
-                            echo "[!] $href is relative, convert to absolute\n";
+                            logger("$href is relative, convert to absolute", 2);
                             $href = Path($url) . $href;
                         }
                     }
-                        echo "[!] Result: $href\n";
+                        logger("Result: $href", 2);
                         //Assume that URL is okay until it isn't
                         $valid = true;
 
                         if (!filter_var($href, FILTER_VALIDATE_URL)) {
-                            echo "[-] URL is not valid. Rejecting.\n";
+                            logger("URL is not valid. Rejecting.", 1);
                             $valid = false;
                         }
 
                         if (substr($href, 0, strlen($target)) != $target){
-                            echo "[-] URL is not part of the target domain. Rejecting.\n";
+                            logger("URL is not part of the target domain. Rejecting.", 1);
                             $valid = false;
                         }
                         if (in_array($href . ($query_string?'?'.$query_string:''), $scanned)){
-                            echo "[-] URL has already been scanned. Rejecting.\n";
+                            logger("URL has already been scanned. Rejecting.", 1);
                             $valid = false;
                         }
                         if (!CheckBlacklist($href)){
-                            echo "[-] URL is blacklisted. Rejecting.\n";
+                            logger("URL is blacklisted. Rejecting.", 1);
                             $valid = false;
                         }
                         if ($valid) {
@@ -225,7 +250,7 @@ if (isset($args['url'])) $url = $args['url'];
 $start = microtime(true);
 $pf = fopen($file, "w");
 if (!$pf) {
-    echo "[-] Error: Could not create file - $file\n";
+    logger("Error: Could not create file - $file", 1);
     exit;
 }
 fwrite($pf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
