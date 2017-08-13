@@ -38,7 +38,7 @@ $file = "sitemap.xml";
 $max_depth = 0;
 $enable_frequency = false;
 $enable_priority = false;
-$enable_modified = false;
+$enable_modified = true;
 $curl_validate_certificate = true;
 $freq = "daily";
 $priority = "1";
@@ -88,12 +88,16 @@ function GetData($url)
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_HEADER, 1);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $curl_validate_certificate);
     $data = curl_exec($ch);
     $content_type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $redirect_url = curl_getinfo($ch, CURLINFO_REDIRECT_URL);
+    if ($redirect_url){
+        echo "[-] URL is a redirect. \n";
+        Scan($redirect_url);
+    }
     $html = ($http_code != 200 || (!stripos($content_type, "html"))) ? false : $data;
     $timestamp = curl_getinfo($ch, CURLINFO_FILETIME);
     curl_close($ch);
