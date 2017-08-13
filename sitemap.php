@@ -45,7 +45,7 @@ $enable_priority = false;
 //Unreliable: disabled by default
 $enable_modified = false;
 
-//Some sites have misconfigured but tolerable SSL. Enable this for those cases.
+//Some sites have misconfigured but tolerable SSL. Disable this for those cases.
 $curl_validate_certificate = true;
 
 //Relative stuff, ignore it
