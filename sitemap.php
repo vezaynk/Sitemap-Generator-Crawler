@@ -34,7 +34,7 @@ $target = "https://www.knyz.org";
 //Location to save file
 $file = "sitemap.xml";
 
-//How many layers of recursion are you on, dude?
+//How many layers of recursion are you on, my dude?
 $max_depth = 0;
 
 //These two are relative. It's pointless to enable them unless if you intend to modify the sitemap later.
