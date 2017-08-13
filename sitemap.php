@@ -42,7 +42,8 @@ $enable_frequency = false;
 $enable_priority = false;
 
 //Tells search engines the last time the page was modified according to your software
-$enable_modified = true;
+//Unreliable: disabled by default
+$enable_modified = false;
 
 //Some sites have misconfigured but tolerable SSL. Enable this for those cases.
 $curl_validate_certificate = true;
@@ -54,9 +55,7 @@ $priority = "1";
 //The pages will not be crawled and will not be included in sitemap
 //Use this list to exlude non-html files to increase performance and save bandwidth
 $blacklist = array(
-    "*.jpg",
-    "*.png",
-    "*/secretstuff/*"
+    "https://make-emotions.ru/*.*"
 );
 
 
@@ -64,8 +63,8 @@ $blacklist = array(
 
 $debug = Array(
     "add" => true,
-    "reject" => false,
-    "warn" => false
+    "reject" => true,
+    "warn" => true
 );
 
 function logger($message, $type){
@@ -107,10 +106,10 @@ function domain_root($href) {
     return $url_parts[0].'//'.$url_parts[2].'/';
 }
 
+$ch = curl_init();
 function GetData($url)
 {
-    global $curl_validate_certificate;
-    $ch = curl_init();
+    global $curl_validate_certificate, $ch;
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_HEADER, 1);
@@ -125,7 +124,6 @@ function GetData($url)
     }
     $html = ($http_code != 200 || (!stripos($content_type, "html"))) ? false : $data;
     $timestamp = curl_getinfo($ch, CURLINFO_FILETIME);
-    curl_close($ch);
     $modified = date('c', strtotime($timestamp));
     return array($html, $modified);
 }
