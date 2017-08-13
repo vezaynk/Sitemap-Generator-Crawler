@@ -55,7 +55,9 @@ $priority = "1";
 //The pages will not be crawled and will not be included in sitemap
 //Use this list to exlude non-html files to increase performance and save bandwidth
 $blacklist = array(
-    "https://make-emotions.ru/*.*"
+    "*.jpg",
+    "*/secrets/*",
+    "https://www.knyz.org/supersecret"
 );
 
 
