@@ -29,7 +29,7 @@ if (php_sapi_name() === 'cli') {
 }
 
 //Site to crawl
-$site = "https://www.knyz.org" + "/";
+$site = "https://www.knyz.org" . "/";
 
 //Location to save file
 $file = "sitemap.xml";
@@ -266,7 +266,15 @@ function scan_url($url)
 }
 header("Content-Type: text/plain");
 if (isset($args['file'])) $file = $args['file'];
-if (isset($args['url'])) $url = $args['url'];
+if (isset($args['site'])) $site = $args['site'];
+if (isset($args['max_depth'])) $max_depth = $args['max_depth'];
+if (isset($args['enable_frequency'])) $enable_frequency = $args['enable_frequency'];
+if (isset($args['enable_priority'])) $enable_priority = $args['enable_priority'];
+if (isset($args['enable_modified'])) $enable_modified = $args['enable_modified'];
+if (isset($args['freq'])) $freq = $args['freq'];
+if (isset($args['priority'])) $priority = $args['priority'];
+if (isset($args['blacklist'])) $blacklist = $args['blacklist'];
+if (isset($args['debug'])) $debug = $args['debug'];
 
 $start = microtime(true);
 $pf = fopen($file, "w");
