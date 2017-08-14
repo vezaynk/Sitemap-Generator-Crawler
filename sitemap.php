@@ -29,7 +29,7 @@ if (php_sapi_name() === 'cli') {
 }
 
 //Site to crawl
-$target = "https://www.knyz.org";
+$target = "https://www.knyz.org" + "/";
 
 //Location to save file
 $file = "sitemap.xml";
@@ -85,6 +85,23 @@ function logger($message, $type){
         echo $debug["warn"] ? "[!] $message \n" : "";
         break;
     }
+}
+
+function is_scanned($url){
+    global $scanned;
+    if (in_array($url, $scanned)){
+        return true;
+    }
+    $url = endsWith($url, "?") ? explode("?", $url)[0] : $url;
+    if (in_array($url, $scanned)){
+        return true;
+    }
+    
+    $url = endsWith($url, "/") ? explode("/", $url)[0] : $url . "/";
+    if (in_array($url, $scanned)){
+        return true;
+    }
+    return false;
 }
 
 function endsWith($haystack, $needle)
@@ -153,7 +170,10 @@ function Scan($url)
     $proceed = true;
     logger("Scanning $url", 2);
     
-    
+    if (is_scanned($url)){
+        logger("URL has already been scanned. Rejecting.", 1);
+        $proceed = false;
+    }
     array_push($scanned, $url);
     list($html, $modified) = GetData($url);
     if (!$html){
@@ -221,7 +241,7 @@ function Scan($url)
                             logger("URL is not part of the target domain. Rejecting.", 1);
                             $valid = false;
                         }
-                        if (in_array($href . ($query_string?'?'.$query_string:''), $scanned)){
+                        if (is_scanned($href . ($query_string?'?'.$query_string:''))){
                             logger("URL has already been scanned. Rejecting.", 1);
                             $valid = false;
                         }
