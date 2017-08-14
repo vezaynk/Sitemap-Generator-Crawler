@@ -39,7 +39,7 @@ While the above is the most common use-case, sometimes you need to modify other 
 
 Lets start with the blacklist which is a one-dimensional array. This is how you would pass an array as a `GET` request.
 
-`php sitemap.php blacklist[]="foo"&blacklist[]="bar"`
+~~`php sitemap.php blacklist[]="foo"&blacklist[]="bar"`~~
 
 Shells are different however as `[]` is parsed as a shell expansion and `&` as a fork-to-background. You want neither of those things. As such, you want to escape both of them resulting in the following:
 
