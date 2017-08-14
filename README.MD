@@ -47,7 +47,9 @@ Shells are different however as `[]` is parsed as a shell expansion and `&` as a
 
 Next, let's tackle the `$debug` variable. All the same concepts apply but the syntax is slightly different:
 
-`php sitemap.php debug\["add"]=true\&debug\["warn"]="false"`
+`php sitemap.php debug\["add"]=true\&debug\["warn"]=false\&debug\["reject"]=true`
+
+**Important note**: Overriding an array does exactly what it means. Previously defined elements are destroyed.
 
 # License
 
