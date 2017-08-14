@@ -29,7 +29,7 @@ if (php_sapi_name() === 'cli') {
 }
 
 //Site to crawl
-$target = "https://www.knyz.org" + "/";
+$site = "https://www.knyz.org" + "/";
 
 //Location to save file
 $file = "sitemap.xml";
@@ -92,19 +92,19 @@ function is_scanned($url){
     if (in_array($url, $scanned)){
         return true;
     }
-    $url = endsWith($url, "?") ? explode("?", $url)[0] : $url;
+    $url = ends_with($url, "?") ? explode("?", $url)[0] : $url;
     if (in_array($url, $scanned)){
         return true;
     }
     
-    $url = endsWith($url, "/") ? explode("/", $url)[0] : $url . "/";
+    $url = ends_with($url, "/") ? explode("/", $url)[0] : $url . "/";
     if (in_array($url, $scanned)){
         return true;
     }
     return false;
 }
 
-function endsWith($haystack, $needle)
+function ends_with($haystack, $needle)
 {
     $length = strlen($needle);
     if ($length == 0) {
@@ -113,7 +113,8 @@ function endsWith($haystack, $needle)
     return (substr($haystack, -$length) === $needle);
 }
 
-function Path($p)
+//I don't remember what this function does and why. Please help.
+function get_path($p)
 {
     $a = explode("/", $p);
     $len = strlen($a[count($a) - 1]);
@@ -126,7 +127,7 @@ function domain_root($href) {
 }
 
 $ch = curl_init();
-function GetData($url)
+function get_data($url)
 {
     global $curl_validate_certificate, $ch;
     curl_setopt($ch, CURLOPT_URL, $url);
@@ -139,7 +140,7 @@ function GetData($url)
     $redirect_url = curl_getinfo($ch, CURLINFO_REDIRECT_URL);
     if ($redirect_url){
         logger("URL is a redirect.", 1);
-        Scan($redirect_url);
+        scan_url($redirect_url);
     }
     $html = ($http_code != 200 || (!stripos($content_type, "html"))) ? false : $data;
     $timestamp = curl_getinfo($ch, CURLINFO_FILETIME);
@@ -148,7 +149,7 @@ function GetData($url)
 }
 
 
-function CheckBlacklist($uri)
+function check_blacklist($uri)
 {
     global $blacklist;
     if (is_array($blacklist)) {
@@ -162,9 +163,9 @@ function CheckBlacklist($uri)
     return true;
 }
 
-function Scan($url)
+function scan_url($url)
 {
-    global $scanned, $pf, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth, $target;
+    global $scanned, $pf, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth, $site;
     $depth++;
     
     $proceed = true;
@@ -175,7 +176,7 @@ function Scan($url)
         $proceed = false;
     }
     array_push($scanned, $url);
-    list($html, $modified) = GetData($url);
+    list($html, $modified) = get_data($url);
     if (!$html){
         logger("Invalid Document. Rejecting.", 1);
         $proceed = false;
@@ -218,14 +219,14 @@ function Scan($url)
                         
                         if ($href == '/') {
                             logger("$href is domain root", 2);
-                            $href = $target . $href;
+                            $href = $site . $href;
                         }
                         elseif (substr($href, 0, 1) == '/') {
                             logger("$href is relative to root, convert to absolute", 2);
-                            $href = domain_root($target) . substr($href, 1);
+                            $href = domain_root($site) . substr($href, 1);
                         } else {
                             logger("$href is relative, convert to absolute", 2);
-                            $href = Path($url) . $href;
+                            $href = get_path($url) . $href;
                         }
                     }
                         logger("Result: $href", 2);
@@ -237,7 +238,7 @@ function Scan($url)
                             $valid = false;
                         }
 
-                        if (substr($href, 0, strlen($target)) != $target){
+                        if (substr($href, 0, strlen($site)) != $site){
                             logger("URL is not part of the target domain. Rejecting.", 1);
                             $valid = false;
                         }
@@ -245,7 +246,7 @@ function Scan($url)
                             logger("URL has already been scanned. Rejecting.", 1);
                             $valid = false;
                         }
-                        if (!CheckBlacklist($href)){
+                        if (!check_blacklist($href)){
                             logger("URL is blacklisted. Rejecting.", 1);
                             $valid = false;
                         }
@@ -254,7 +255,7 @@ function Scan($url)
                             $href = $href . ($query_string?'?'.$query_string:'');
 
                             
-                            Scan($href);
+                            scan_url($href);
                         }
 
                 }
@@ -282,7 +283,7 @@ fwrite($pf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 ");
 $depth = 0;
 $scanned = array();
-Scan($target);
+scan_url($site);
 fwrite($pf, "</urlset>\n");
 fclose($pf);
 $time_elapsed_secs = microtime(true) - $start;
