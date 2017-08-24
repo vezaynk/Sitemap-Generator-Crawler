@@ -1,0 +1,13 @@
+
+{
+    "name": "Sitemap-Generator-Crawler",
+    "type": "project",
+    "license": "MIT",
+    "description": "Script that generates a sitemap by crawling a given URL.",
+    "authors": [
+        {
+            "name": "Slava Knyazev",
+            "email": "slava@knyz.org"
+        }
+    ]
+}
