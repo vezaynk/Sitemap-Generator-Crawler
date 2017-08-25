@@ -63,42 +63,44 @@ $blacklist = array(
 
 /* NO NEED TO EDIT BELOW THIS LINE */
 
-$debug = Array(
+$debug = array(
     "add" => true,
-    "reject" => true,
-    "warn" => true
+    "reject" => false,
+    "warn" => false
 );
 
-function logger($message, $type){
+function logger($message, $type)
+{
     global $debug;
     switch ($type) {
-    case 0:
-        //add
-        echo $debug["add"] ? "[+] $message \n" : "";
-        break;
-    case 1:
-        //reject
-        echo $debug["reject"] ? "[-] $message \n" : "";
-        break;
-    case 2:
-        //manipulate
-        echo $debug["warn"] ? "[!] $message \n" : "";
-        break;
+        case 0:
+            //add
+            echo $debug["add"] ? "[+] $message \n" : "";
+            break;
+        case 1:
+            //reject
+            echo $debug["reject"] ? "[-] $message \n" : "";
+            break;
+        case 2:
+            //manipulate
+            echo $debug["warn"] ? "[!] $message \n" : "";
+            break;
     }
 }
 
-function is_scanned($url){
+function is_scanned($url)
+{
     global $scanned;
-    if (in_array($url, $scanned)){
+    if (in_array($url, $scanned)) {
         return true;
     }
     $url = ends_with($url, "?") ? explode("?", $url)[0] : $url;
-    if (in_array($url, $scanned)){
+    if (in_array($url, $scanned)) {
         return true;
     }
     
     $url = ends_with($url, "/") ? explode("/", $url)[0] : $url . "/";
-    if (in_array($url, $scanned)){
+    if (in_array($url, $scanned)) {
         return true;
     }
     return false;
@@ -121,7 +123,8 @@ function get_path($p)
     return (substr($p, 0, strlen($p) - $len));
 }
 
-function domain_root($href) {
+function domain_root($href)
+{
     $url_parts = explode('/', $href);
     return $url_parts[0].'//'.$url_parts[2].'/';
 }
@@ -138,7 +141,7 @@ function get_data($url)
     $content_type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $redirect_url = curl_getinfo($ch, CURLINFO_REDIRECT_URL);
-    if ($redirect_url){
+    if ($redirect_url) {
         logger("URL is a redirect.", 1);
         scan_url($redirect_url);
     }
@@ -155,7 +158,7 @@ function check_blacklist($uri)
     if (is_array($blacklist)) {
         $string = $uri;
         foreach ($blacklist as $illegal) {
-            if (fnmatch($illegal,$string)) {
+            if (fnmatch($illegal, $string)) {
                 return false;
             }
         }
@@ -171,34 +174,41 @@ function scan_url($url)
     $proceed = true;
     logger("Scanning $url", 2);
     
-    if (is_scanned($url)){
+    if (is_scanned($url)) {
         logger("URL has already been scanned. Rejecting.", 1);
+        $proceed = false;
+    }
+    if (substr($url, 0, strlen($site)) != $site) {
+        logger("URL is not part of the target domain. Rejecting.", 1);
         $proceed = false;
     }
     array_push($scanned, $url);
     list($html, $modified) = get_data($url);
-    if (!$html){
+    if (!$html) {
         logger("Invalid Document. Rejecting.", 1);
         $proceed = false;
-    }
-
-    elseif (!($depth <= $max_depth || $max_depth == 0)){
+    } elseif (!($depth <= $max_depth || $max_depth == 0)) {
         logger("Maximum depth exceeded. Rejecting.", 1);
         $proceed = false;
     }
     if ($proceed) {
-
-        
-        if (!$enable_modified) unset($modified);
+        if (!$enable_modified) {
+            unset($modified);
+        }
 
         $map_row = "<url>\n";
         $map_row .= "<loc>$url</loc>\n";
-        if ($enable_frequency) $map_row .= "<changefreq>$freq</changefreq>\n";
-        if ($enable_priority) $map_row .= "<priority>$priority</priority>\n";
-        if (!empty($modified)) $map_row .= "   <lastmod>$modified</lastmod>\n";
+        if ($enable_frequency) {
+            $map_row .= "<changefreq>$freq</changefreq>\n";
+        }
+        if ($enable_priority) {
+            $map_row .= "<priority>$priority</priority>\n";
+        }
+        if (!empty($modified)) {
+            $map_row .= "   <lastmod>$modified</lastmod>\n";
+        }
         $map_row .= "</url>\n";
         fwrite($pf, $map_row);
-
         logger("Added: " . $url . ((!empty($modified)) ? " [Modified: " . $modified . "]" : ''), 0);
 
         $regexp = "<a\s[^>]*href=(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
@@ -207,21 +217,31 @@ function scan_url($url)
                 $links = $matches[2];
                 foreach ($links as $href) {
                     logger("Found $href", 2);
-                    if (strpos($href, '?') !== false) list($href, $query_string) = explode('?', $href);
-                    else $query_string = '';
+                    if (strpos($href, '?') !== false) {
+                        list($href, $query_string) = explode('?', $href);
+                    } else {
+                        $query_string = '';
+                    }
 
-                    if (strpos($href, "#") !== false){
+                    if (strpos($href, "#") !== false) {
                         logger("Dropping pound.", 2);
                         $href = strtok($href, "#");
                     }
+
+                    //Assume that URL is okay until it isn't
+                    $valid = true;
+                    
+                    
                     if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://")) {
                         // Link does not call (potentially) external page
-                        
+                        if (strpos($href, ":")) {
+                            logger("URL is an invalid protocol", 1);
+                            $valid = false;
+                        }
                         if ($href == '/') {
                             logger("$href is domain root", 2);
                             $href = $site . $href;
-                        }
-                        elseif (substr($href, 0, 1) == '/') {
+                        } elseif (substr($href, 0, 1) == '/') {
                             logger("$href is relative to root, convert to absolute", 2);
                             $href = domain_root($site) . substr($href, 1);
                         } else {
@@ -230,34 +250,25 @@ function scan_url($url)
                         }
                     }
                         logger("Result: $href", 2);
-                        //Assume that URL is okay until it isn't
-                        $valid = true;
-
-                        if (!filter_var($href, FILTER_VALIDATE_URL)) {
-                            logger("URL is not valid. Rejecting.", 1);
-                            $valid = false;
-                        }
-
-                        if (substr($href, 0, strlen($site)) != $site){
-                            logger("URL is not part of the target domain. Rejecting.", 1);
-                            $valid = false;
-                        }
-                        if (is_scanned($href . ($query_string?'?'.$query_string:''))){
-                            logger("URL has already been scanned. Rejecting.", 1);
-                            $valid = false;
-                        }
-                        if (!check_blacklist($href)){
-                            logger("URL is blacklisted. Rejecting.", 1);
-                            $valid = false;
-                        }
-                        if ($valid) {
-
-                            $href = $href . ($query_string?'?'.$query_string:'');
+                    if (!filter_var($href, FILTER_VALIDATE_URL)) {
+                        logger("URL is not valid. Rejecting.", 1);
+                        $valid = false;
+                    } elseif (substr($href, 0, strlen($site)) != $site) {
+                        logger("URL is not part of the target domain. Rejecting.", 1);
+                        $valid = false;
+                    } elseif (is_scanned($href . ($query_string?'?'.$query_string:''))) {
+                        logger("URL has already been scanned. Rejecting.", 1);
+                        $valid = false;
+                    } elseif (!check_blacklist($href)) {
+                        logger("URL is blacklisted. Rejecting.", 1);
+                        $valid = false;
+                    }
+                    if ($valid) {
+                        $href = $href . ($query_string?'?'.$query_string:'');
 
                             
-                            scan_url($href);
-                        }
-
+                        scan_url($href);
+                    }
                 }
             }
         }
@@ -265,19 +276,40 @@ function scan_url($url)
     $depth--;
 }
 header("Content-Type: text/plain");
-if (isset($args['file'])) $file = $args['file'];
-if (isset($args['site'])) $site = $args['site'];
-if (isset($args['max_depth'])) $max_depth = $args['max_depth'];
-if (isset($args['enable_frequency'])) $enable_frequency = $args['enable_frequency'];
-if (isset($args['enable_priority'])) $enable_priority = $args['enable_priority'];
-if (isset($args['enable_modified'])) $enable_modified = $args['enable_modified'];
-if (isset($args['freq'])) $freq = $args['freq'];
-if (isset($args['priority'])) $priority = $args['priority'];
-if (isset($args['blacklist'])) $blacklist = $args['blacklist'];
-if (isset($args['debug'])) $debug = $args['debug'];
+
+if (isset($args['file'])) {
+    $file = $args['file'];
+}
+if (isset($args['site'])) {
+    $site = $args['site'];
+}
+if (isset($args['max_depth'])) {
+    $max_depth = $args['max_depth'];
+}
+if (isset($args['enable_frequency'])) {
+    $enable_frequency = $args['enable_frequency'];
+}
+if (isset($args['enable_priority'])) {
+    $enable_priority = $args['enable_priority'];
+}
+if (isset($args['enable_modified'])) {
+    $enable_modified = $args['enable_modified'];
+}
+if (isset($args['freq'])) {
+    $freq = $args['freq'];
+}
+if (isset($args['priority'])) {
+    $priority = $args['priority'];
+}
+if (isset($args['blacklist'])) {
+    $blacklist = $args['blacklist'];
+}
+if (isset($args['debug'])) {
+    $debug = $args['debug'];
+}
 
 $start = microtime(true);
-$pf = fopen($file, "w");
+$pf = fopen($file, "w") or die("can't open file");
 if (!$pf) {
     logger("Error: Could not create file - $file", 1);
     exit;
