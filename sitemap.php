@@ -23,11 +23,6 @@ Usage is pretty strait forward:
 It is recommended you don't remove the above for future reference.
 */
 
-// Add PHP CLI support
-if (php_sapi_name() === 'cli') {
-    parse_str(implode('&', array_slice($argv, 1)), $args);
-}
-
 //Site to crawl
 $site = "https://www.knyz.org" . "/";
 
@@ -65,8 +60,8 @@ $blacklist = array(
 
 $debug = array(
     "add" => true,
-    "reject" => false,
-    "warn" => false
+    "reject" => true,
+    "warn" => true
 );
 
 function logger($message, $type)
@@ -75,15 +70,15 @@ function logger($message, $type)
     switch ($type) {
         case 0:
             //add
-            echo $debug["add"] ? "[+] $message \n" : "";
+            echo $debug["add"] ? "\033[0;32m [+] $message \033[0m\n" : "";
             break;
         case 1:
             //reject
-            echo $debug["reject"] ? "[-] $message \n" : "";
+            echo $debug["reject"] ? "\033[0;31m [-] $message \033[0m\n" : "";
             break;
         case 2:
             //manipulate
-            echo $debug["warn"] ? "[!] $message \n" : "";
+            echo $debug["warn"] ? "\033[1;33m [!] $message \033[0m\n" : "";
             break;
     }
 }
@@ -168,7 +163,7 @@ function check_blacklist($uri)
 
 function scan_url($url)
 {
-    global $scanned, $pf, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth, $site;
+    global $scanned, $pf, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth, $site, $indexed;
     $depth++;
     
     $proceed = true;
@@ -209,6 +204,7 @@ function scan_url($url)
         }
         $map_row .= "</url>\n";
         fwrite($pf, $map_row);
+        $indexed++;
         logger("Added: " . $url . ((!empty($modified)) ? " [Modified: " . $modified . "]" : ''), 0);
 
         $regexp = "<a\s[^>]*href=(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
@@ -277,6 +273,14 @@ function scan_url($url)
 }
 header("Content-Type: text/plain");
 
+$color = false;
+
+// Add PHP CLI support
+if (php_sapi_name() === 'cli') {
+    parse_str(implode('&', array_slice($argv, 1)), $args);
+    $color = true;
+}
+
 if (isset($args['file'])) {
     $file = $args['file'];
 }
@@ -322,9 +326,12 @@ fwrite($pf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
             http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd\">
 ");
 $depth = 0;
+$indexed = 0;
 $scanned = array();
 scan_url($site);
 fwrite($pf, "</urlset>\n");
 fclose($pf);
-$time_elapsed_secs = microtime(true) - $start;
-echo "[+] Sitemap has been generated in " . $time_elapsed_secs . " second" . ($time_elapsed_secs >= 1 ? 's' : '') . ".\n";
+$time_elapsed_secs = round(microtime(true) - $start, 2);
+logger("Sitemap has been generated in " . $time_elapsed_secs . " second" . (($time_elapsed_secs >= 1 ? 's' : '') . "and saved to $file"), 0);
+$size = sizeof($scanned);
+logger("Scanned a total of $size pages and indexed $indexed pages.", 0);
