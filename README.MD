@@ -6,9 +6,10 @@
  - Awesome for SEO
  - Crawls faster than online services
  - Verbose logging
+ - Color support in CLI mode
  - Customizable
  - Author is active on Github, open an issue for support
- - Literally the best open-source sitemap generally written in PHP
+ - Literally the best open-source sitemap written in PHP (and possibly _the_ best)
  
 ## Usage
 Usage is pretty strait forward:

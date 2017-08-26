@@ -60,8 +60,8 @@ $blacklist = array(
 
 $debug = array(
     "add" => true,
-    "reject" => true,
-    "warn" => true
+    "reject" => false,
+    "warn" => false
 );
 
 function logger($message, $type)
