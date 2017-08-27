@@ -168,14 +168,12 @@ function get_links($html, $parent_url)
     $regexp = "<a\s[^>]*href=(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
     if (preg_match_all("/$regexp/siU", $html, $matches)) {
         if ($matches[2]) {
-            $found = array_map(function ($href)
-            {
+            $found = array_map(function ($href) {
                 global $site, $parent_url;
                 logger("Checking $href", 2);
                 if (strpos($href, '?') !== false) {
                     list($href, $query_string) = explode('?', $href);
                     $query_string = str_replace( '&amp;', '&', $query_string );
-                    
                 } else {
                     $query_string = '';
                 }
@@ -261,12 +259,12 @@ function scan_url($url)
         unset($modified);
     }
 
-    if (strpos($url, "&") && strpos($url, ";")===false){
+    if (strpos($url, "&") && strpos($url, ";")===false) {
         $url = str_replace("&", "&amp;", $url);
     }
 
-        $map_row = "<url>\n";
-        $map_row .= "<loc>$url</loc>\n";
+    $map_row = "<url>\n";
+    $map_row .= "<loc>$url</loc>\n";
     if ($enable_frequency) {
         $map_row .= "<changefreq>$freq</changefreq>\n";
     }
@@ -276,21 +274,18 @@ function scan_url($url)
     if (!empty($modified)) {
         $map_row .= "   <lastmod>$modified</lastmod>\n";
     }
-        $map_row .= "</url>\n";
-        fwrite($pf, $map_row);
-        $indexed++;
-        logger("Added: " . $url . ((!empty($modified)) ? " [Modified: " . $modified . "]" : ''), 0);
+    $map_row .= "</url>\n";
+    fwrite($pf, $map_row);
+    $indexed++;
+    logger("Added: " . $url . ((!empty($modified)) ? " [Modified: " . $modified . "]" : ''), 0);
 
-        $links = get_links($html, $url);
-        logger("Found urls: " . join(", ", $links), 2);
+    $links = get_links($html, $url);
+    logger("Found urls: " . join(", ", $links), 2);
     foreach ($links as $href) {
-        
-        if ($href){
-            scan_url($href);
+        if ($href) {
+           scan_url($href);
         }
-        
     }
-    
     $depth--;
 }
 header("Content-Type: text/plain");
