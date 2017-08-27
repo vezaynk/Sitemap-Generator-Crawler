@@ -30,7 +30,7 @@ $site = "https://www.knyz.org" . "/";
 $file = "sitemap.xml";
 
 //How many layers of recursion are you on, my dude?
-$max_depth = 0;
+$max_depth = 5;
 
 //These two are relative. It's pointless to enable them unless if you intend to modify the sitemap later.
 $enable_frequency = false;
@@ -60,8 +60,8 @@ $blacklist = array(
 
 $debug = array(
     "add" => true,
-    "reject" => false,
-    "warn" => false
+    "reject" => true,
+    "warn" => true
 );
 
 function logger($message, $type)
@@ -161,114 +161,124 @@ function check_blacklist($uri)
     return true;
 }
 
+function get_links($html)
+{
+    $regexp = "<a\s[^>]*href=(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
+    if (preg_match_all("/$regexp/siU", $html, $matches)) {
+        if ($matches[2]) {
+            return $matches[2];
+        }
+    }
+    return array();
+}
+
 function scan_url($url)
 {
     global $scanned, $pf, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth, $site, $indexed;
     $depth++;
     
+    //Assume URL is Okay until it isn't
     $proceed = true;
     logger("Scanning $url", 2);
-    
     if (is_scanned($url)) {
         logger("URL has already been scanned. Rejecting.", 1);
-        $proceed = false;
+        return $depth--;
     }
     if (substr($url, 0, strlen($site)) != $site) {
         logger("URL is not part of the target domain. Rejecting.", 1);
-        $proceed = false;
+        return $depth--;
     }
+    if (!($depth <= $max_depth || $max_depth == 0)) {
+        logger("Maximum depth exceeded. Rejecting.", 1);
+        return $depth--;
+    }
+    
+    //Note that URL has been scanned
     array_push($scanned, $url);
+
+    //Send cURL request
     list($html, $modified) = get_data($url);
+
     if (!$html) {
         logger("Invalid Document. Rejecting.", 1);
-        $proceed = false;
-    } elseif (!($depth <= $max_depth || $max_depth == 0)) {
-        logger("Maximum depth exceeded. Rejecting.", 1);
-        $proceed = false;
+        return $depth--;
     }
-    if ($proceed) {
-        if (!$enable_modified) {
-            unset($modified);
-        }
+    if (!$enable_modified) {
+        unset($modified);
+    }
 
         $map_row = "<url>\n";
         $map_row .= "<loc>$url</loc>\n";
-        if ($enable_frequency) {
-            $map_row .= "<changefreq>$freq</changefreq>\n";
-        }
-        if ($enable_priority) {
-            $map_row .= "<priority>$priority</priority>\n";
-        }
-        if (!empty($modified)) {
-            $map_row .= "   <lastmod>$modified</lastmod>\n";
-        }
+    if ($enable_frequency) {
+        $map_row .= "<changefreq>$freq</changefreq>\n";
+    }
+    if ($enable_priority) {
+        $map_row .= "<priority>$priority</priority>\n";
+    }
+    if (!empty($modified)) {
+        $map_row .= "   <lastmod>$modified</lastmod>\n";
+    }
         $map_row .= "</url>\n";
         fwrite($pf, $map_row);
         $indexed++;
         logger("Added: " . $url . ((!empty($modified)) ? " [Modified: " . $modified . "]" : ''), 0);
 
-        $regexp = "<a\s[^>]*href=(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
-        if (preg_match_all("/$regexp/siU", $html, $matches)) {
-            if ($matches[2]) {
-                $links = $matches[2];
-                foreach ($links as $href) {
-                    logger("Found $href", 2);
-                    if (strpos($href, '?') !== false) {
-                        list($href, $query_string) = explode('?', $href);
-                    } else {
-                        $query_string = '';
-                    }
+        $links = get_links($html);
+                
+    foreach ($links as $href) {
+        logger("Found $href", 2);
+        if (strpos($href, '?') !== false) {
+            list($href, $query_string) = explode('?', $href);
+        } else {
+            $query_string = '';
+        }
 
-                    if (strpos($href, "#") !== false) {
-                        logger("Dropping pound.", 2);
-                        $href = strtok($href, "#");
-                    }
+        if (strpos($href, "#") !== false) {
+            logger("Dropping pound.", 2);
+            $href = strtok($href, "#");
+        }
 
-                    //Assume that URL is okay until it isn't
-                    $valid = true;
+        //Assume that URL is okay until it isn't
+        $valid = true;
                     
                     
-                    if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://")) {
-                        // Link does not call (potentially) external page
-                        if (strpos($href, ":")) {
-                            logger("URL is an invalid protocol", 1);
-                            $valid = false;
-                        }
-                        if ($href == '/') {
-                            logger("$href is domain root", 2);
-                            $href = $site . $href;
-                        } elseif (substr($href, 0, 1) == '/') {
-                            logger("$href is relative to root, convert to absolute", 2);
-                            $href = domain_root($site) . substr($href, 1);
-                        } else {
-                            logger("$href is relative, convert to absolute", 2);
-                            $href = get_path($url) . $href;
-                        }
-                    }
-                        logger("Result: $href", 2);
-                    if (!filter_var($href, FILTER_VALIDATE_URL)) {
-                        logger("URL is not valid. Rejecting.", 1);
-                        $valid = false;
-                    } elseif (substr($href, 0, strlen($site)) != $site) {
-                        logger("URL is not part of the target domain. Rejecting.", 1);
-                        $valid = false;
-                    } elseif (is_scanned($href . ($query_string?'?'.$query_string:''))) {
-                        logger("URL has already been scanned. Rejecting.", 1);
-                        $valid = false;
-                    } elseif (!check_blacklist($href)) {
-                        logger("URL is blacklisted. Rejecting.", 1);
-                        $valid = false;
-                    }
-                    if ($valid) {
-                        $href = $href . ($query_string?'?'.$query_string:'');
-
-                            
-                        scan_url($href);
-                    }
-                }
+        if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://")) {
+            // Link does not call (potentially) external page
+            if (strpos($href, ":")) {
+                logger("URL is an invalid protocol", 1);
+                $valid = false;
+            }
+            if ($href == '/') {
+                logger("$href is domain root", 2);
+                $href = $site . $href;
+            } elseif (substr($href, 0, 1) == '/') {
+                logger("$href is relative to root, convert to absolute", 2);
+                $href = domain_root($site) . substr($href, 1);
+            } else {
+                logger("$href is relative, convert to absolute", 2);
+                $href = get_path($url) . $href;
             }
         }
+        logger("Result: $href", 2);
+        if (!filter_var($href, FILTER_VALIDATE_URL)) {
+            logger("URL is not valid. Rejecting.", 1);
+            $valid = false;
+        } elseif (substr($href, 0, strlen($site)) != $site) {
+            logger("URL is not part of the target domain. Rejecting.", 1);
+            $valid = false;
+        } elseif (is_scanned($href . ($query_string?'?'.$query_string:''))) {
+            logger("URL has already been scanned. Rejecting.", 1);
+            $valid = false;
+        } elseif (!check_blacklist($href)) {
+            logger("URL is blacklisted. Rejecting.", 1);
+            $valid = false;
+        }
+        if ($valid) {
+            $href = $href . ($query_string?'?'.$query_string:'');
+            scan_url($href);
+        }
     }
+    
     $depth--;
 }
 header("Content-Type: text/plain");
