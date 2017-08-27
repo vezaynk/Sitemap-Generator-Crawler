@@ -161,14 +161,69 @@ function check_blacklist($uri)
     return true;
 }
 
-function get_links($html)
+
+
+function get_links($html, $parent_url)
 {
     $regexp = "<a\s[^>]*href=(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
     if (preg_match_all("/$regexp/siU", $html, $matches)) {
         if ($matches[2]) {
-            return $matches[2];
+            $found = array_map(function ($href)
+            {
+                global $site, $parent_url;
+                logger("Checking $href", 2);
+                if (strpos($href, '?') !== false) {
+                    list($href, $query_string) = explode('?', $href);
+                    $query_string = str_replace( '&amp;', '&', $query_string );
+                    
+                } else {
+                    $query_string = '';
+                }
+            
+                if (strpos($href, "#") !== false) {
+                    logger("Dropping pound.", 2);
+                    $href = strtok($href, "#");
+                }
+                                
+                                
+                if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://")) {
+                    // Link does not call (potentially) external page
+                    if (strpos($href, ":")) {
+                        logger("URL is an invalid protocol", 1);
+                        return false;
+                    }
+                    if ($href == '/') {
+                        logger("$href is domain root", 2);
+                        $href = $site . $href;
+                    } elseif (substr($href, 0, 1) == '/') {
+                        logger("$href is relative to root, convert to absolute", 2);
+                        $href = domain_root($site) . substr($href, 1);
+                    } else {
+                        logger("$href is relative, convert to absolute", 2);
+                        $href = get_path($parent_url) . $href;
+                    }
+                }
+                    logger("Result: $href", 2);
+                if (!filter_var($href, FILTER_VALIDATE_URL)) {
+                    logger("URL is not valid. Rejecting.", 1);
+                    return false;
+                } elseif (substr($href, 0, strlen($site)) != $site) {
+                    logger("URL is not part of the target domain. Rejecting.", 1);
+                    return false;
+                } elseif (is_scanned($href . ($query_string?'?'.$query_string:''))) {
+                    logger("URL has already been scanned. Rejecting.", 1);
+                    return false;
+                } elseif (!check_blacklist($href)) {
+                    logger("URL is blacklisted. Rejecting.", 1);
+                    return false;
+                }
+                return $href . ($query_string?'?'.$query_string:'');
+            }, $matches[2]);
+            logger("Found urls: " . join(", ", $found), 2);
+            return $found;
         }
     }
+    logger("Found nothing", 2);
     return array();
 }
 
@@ -207,6 +262,10 @@ function scan_url($url)
         unset($modified);
     }
 
+    if (strpos($url, "&") && strpos($url, ";")===false){
+        $url = str_replace("&", "&amp;", $url);
+    }
+
         $map_row = "<url>\n";
         $map_row .= "<loc>$url</loc>\n";
     if ($enable_frequency) {
@@ -223,60 +282,14 @@ function scan_url($url)
         $indexed++;
         logger("Added: " . $url . ((!empty($modified)) ? " [Modified: " . $modified . "]" : ''), 0);
 
-        $links = get_links($html);
+        $links = get_links($html, $url);
                 
     foreach ($links as $href) {
-        logger("Found $href", 2);
-        if (strpos($href, '?') !== false) {
-            list($href, $query_string) = explode('?', $href);
-        } else {
-            $query_string = '';
-        }
-
-        if (strpos($href, "#") !== false) {
-            logger("Dropping pound.", 2);
-            $href = strtok($href, "#");
-        }
-
-        //Assume that URL is okay until it isn't
-        $valid = true;
-                    
-                    
-        if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://")) {
-            // Link does not call (potentially) external page
-            if (strpos($href, ":")) {
-                logger("URL is an invalid protocol", 1);
-                $valid = false;
-            }
-            if ($href == '/') {
-                logger("$href is domain root", 2);
-                $href = $site . $href;
-            } elseif (substr($href, 0, 1) == '/') {
-                logger("$href is relative to root, convert to absolute", 2);
-                $href = domain_root($site) . substr($href, 1);
-            } else {
-                logger("$href is relative, convert to absolute", 2);
-                $href = get_path($url) . $href;
-            }
-        }
-        logger("Result: $href", 2);
-        if (!filter_var($href, FILTER_VALIDATE_URL)) {
-            logger("URL is not valid. Rejecting.", 1);
-            $valid = false;
-        } elseif (substr($href, 0, strlen($site)) != $site) {
-            logger("URL is not part of the target domain. Rejecting.", 1);
-            $valid = false;
-        } elseif (is_scanned($href . ($query_string?'?'.$query_string:''))) {
-            logger("URL has already been scanned. Rejecting.", 1);
-            $valid = false;
-        } elseif (!check_blacklist($href)) {
-            logger("URL is blacklisted. Rejecting.", 1);
-            $valid = false;
-        }
-        if ($valid) {
-            $href = $href . ($query_string?'?'.$query_string:'');
+        //logger("Found $href", 2);
+        if ($href){
             scan_url($href);
         }
+        
     }
     
     $depth--;
