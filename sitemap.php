@@ -24,13 +24,13 @@ It is recommended you don't remove the above for future reference.
 */
 
 //Site to crawl
-$site = "https://www.knyz.org" . "/";
+$site = "http://www.poshnailandbeauty.co.uk" . "/";
 
 //Location to save file
 $file = "sitemap.xml";
 
 //How many layers of recursion are you on, my dude?
-$max_depth = 5;
+$max_depth = 10;
 
 //These two are relative. It's pointless to enable them unless if you intend to modify the sitemap later.
 $enable_frequency = false;
@@ -192,7 +192,7 @@ function scan_url($url)
         logger("Maximum depth exceeded. Rejecting.", 1);
         return $depth--;
     }
-
+    
     //Note that URL has been scanned
     array_push($scanned, $url);
 
@@ -266,7 +266,7 @@ function scan_url($url)
         } elseif (substr($href, 0, strlen($site)) != $site) {
             logger("URL is not part of the target domain. Rejecting.", 1);
             $valid = false;
-        } elseif (is_scanned($href . $query_string)) {
+        } elseif (is_scanned($href . ($query_string?'?'.$query_string:''))) {
             logger("URL has already been scanned. Rejecting.", 1);
             $valid = false;
         } elseif (!check_blacklist($href)) {
@@ -274,7 +274,7 @@ function scan_url($url)
             $valid = false;
         }
         if ($valid) {
-            $href = $href . $query_string;
+            $href = $href . ($query_string?'?'.$query_string:'');
             scan_url($href);
         }
     }
