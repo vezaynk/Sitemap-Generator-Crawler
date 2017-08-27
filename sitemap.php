@@ -219,7 +219,6 @@ function get_links($html, $parent_url)
                 }
                 return $href . ($query_string?'?'.$query_string:'');
             }, $matches[2]);
-            logger("Found urls: " . join(", ", $found), 2);
             return $found;
         }
     }
@@ -283,9 +282,9 @@ function scan_url($url)
         logger("Added: " . $url . ((!empty($modified)) ? " [Modified: " . $modified . "]" : ''), 0);
 
         $links = get_links($html, $url);
-                
+        logger("Found urls: " . join(", ", $links), 2);
     foreach ($links as $href) {
-        //logger("Found $href", 2);
+        
         if ($href){
             scan_url($href);
         }
