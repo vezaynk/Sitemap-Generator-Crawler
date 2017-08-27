@@ -24,13 +24,13 @@ It is recommended you don't remove the above for future reference.
 */
 
 //Site to crawl
-$site = "http://www.poshnailandbeauty.co.uk" . "/";
+$site = "https://www.knyz.org" . "/";
 
 //Location to save file
 $file = "sitemap.xml";
 
 //How many layers of recursion are you on, my dude?
-$max_depth = 10;
+$max_depth = 0;
 
 //These two are relative. It's pointless to enable them unless if you intend to modify the sitemap later.
 $enable_frequency = false;
