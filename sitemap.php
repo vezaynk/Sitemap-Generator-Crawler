@@ -63,12 +63,14 @@ $index_img = false;
 
 /* NO NEED TO EDIT BELOW THIS LINE */
 
+// Optionally configure debug options
 $debug = array(
     "add" => true,
     "reject" => false,
     "warn" => false
 );
 
+// Abstracted function to output formatted logging
 function logger($message, $type)
 {
     global $debug;
@@ -88,13 +90,10 @@ function logger($message, $type)
     }
 }
 
+// Check if a URL has already been scanned
 function is_scanned($url)
 {
     global $scanned;
-    if (in_array($url, $scanned)) {
-        return true;
-    }
-    $url = ends_with($url, "?") ? explode("?", $url)[0] : $url;
     if (in_array($url, $scanned)) {
         return true;
     }
@@ -304,6 +303,8 @@ function scan_url($url)
     }
     $depth--;
 }
+
+//Default html header makes browsers ignore \n
 header("Content-Type: text/plain");
 
 $color = false;
@@ -314,6 +315,7 @@ if (php_sapi_name() === 'cli') {
     $color = true;
 }
 
+//Allow variable overloading with CLI
 if (isset($args['file'])) {
     $file = $args['file'];
 }
@@ -348,7 +350,10 @@ if (isset($args['ignore_variable'])) {
     $debug = $args['ignore_variable'];
 }
 
+//Begin stopwatch for statistics
 $start = microtime(true);
+
+//Setup file stream
 $file_stream = fopen($file.".partial", "w") or die("can't open file");
 if (!$file_stream) {
     logger("Error: Could not create file - $file", 1);
@@ -361,15 +366,27 @@ fwrite($file_stream, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
       xsi:schemaLocation=\"http://www.sitemaps.org/schemas/sitemap/0.9
             http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd\">
 ");
+
+//Global variable, non-user defined
 $depth = 0;
 $indexed = 0;
 $scanned = array();
+
+//Begin by crawling the original url
 scan_url($site);
+
+//Finalize sitemap
 fwrite($file_stream, "</urlset>\n");
 fclose($file_stream);
+
+//Generate and print out statistics
 $time_elapsed_secs = round(microtime(true) - $start, 2);
 logger("Sitemap has been generated in " . $time_elapsed_secs . " second" . (($time_elapsed_secs >= 1 ? 's' : '') . "and saved to $file"), 0);
 $size = sizeof($scanned);
 logger("Scanned a total of $size pages and indexed $indexed pages.", 0);
+
+//Rename partial file to the real file name. `rename()` overwrites any existing files
 rename($file.".partial", $file);
+
+//Declare that the script has finished executing and exit
 logger("Operation Completed", 0);
