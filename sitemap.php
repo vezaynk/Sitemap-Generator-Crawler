@@ -55,7 +55,10 @@ $blacklist = array(
     "https://www.knyz.org/supersecret"
 );
 
-//Experimental/Unsupported
+//Enable this if your site do require GET arguments to function
+$ignore_arguments = false;
+
+//Experimental/Unsupported. View issue #19 for information.
 $index_img = false;
 
 /* NO NEED TO EDIT BELOW THIS LINE */
@@ -180,7 +183,9 @@ function get_links($html, $parent_url)
                 } else {
                     $query_string = '';
                 }
-
+                if ($ignore_arguments){
+                    $query_string = '';
+                }
                 if (strpos($href, "#") !== false) {
                     logger("Dropping pound.", 2);
                     $href = strtok($href, "#");
