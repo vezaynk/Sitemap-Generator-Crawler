@@ -24,7 +24,7 @@ It is recommended you don't remove the above for future reference.
 */
 
 //Site to crawl
-$site = "https://www.knyz.org" . "/";
+$site = "https://www.knyz.org/";
 
 //Location to save file
 $file = "sitemap.xml";
@@ -94,14 +94,18 @@ function logger($message, $type)
 function is_scanned($url)
 {
     global $scanned;
+
+    //Check if in array
     if (in_array($url, $scanned)) {
         return true;
     }
     
+    //Check if in array as dir and non-dir
     $url = ends_with($url, "/") ? explode("/", $url)[0] : $url . "/";
     if (in_array($url, $scanned)) {
         return true;
     }
+
     return false;
 }
 
@@ -124,6 +128,7 @@ function get_path($path)
     return (substr($path, 0, strlen($path) - $len));
 }
 
+//Get the root of the domain
 function domain_root($href)
 {
     $url_parts = explode('/', $href);
@@ -176,7 +181,7 @@ function get_links($html, $parent_url)
     if (preg_match_all("/$regexp/siU", $html, $matches)) {
         if ($matches[2]) {
             $found = array_map(function ($href) use (&$parent_url){
-                global $site, $ignore_arguments;
+                global $real_site, $ignore_arguments;
                 logger("Checking $href", 2);
                 $query_string = '';
                 if (strpos($href, '?') !== false) {
@@ -200,10 +205,10 @@ function get_links($html, $parent_url)
                     }
                     if ($href == '/') {
                         logger("$href is domain root", 2);
-                        $href = $site . $href;
+                        $href = $real_site . $href;
                     } elseif (substr($href, 0, 1) == '/') {
                         logger("$href is relative to root, convert to absolute", 2);
-                        $href = domain_root($site) . substr($href, 1);
+                        $href = domain_root($real_site) . substr($href, 1);
                     } else {
                         logger("$href is relative, convert to absolute", 2);
                         $href = get_path($parent_url) . $href;
@@ -214,7 +219,7 @@ function get_links($html, $parent_url)
                     logger("URL is not valid. Rejecting.", 1);
                     return false;
                 }
-                if (substr($href, 0, strlen($site)) != $site) {
+                if (substr($href, 0, strlen($real_site)) != $real_site) {
                     logger("URL is not part of the target domain. Rejecting.", 1);
                     return false;
                 }
@@ -237,7 +242,7 @@ function get_links($html, $parent_url)
 
 function scan_url($url)
 {
-    global $scanned, $file_stream, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth, $site, $indexed;
+    global $scanned, $file_stream, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth, $real_site, $indexed;
     $depth++;
     
     logger("Scanning $url", 2);
@@ -245,7 +250,7 @@ function scan_url($url)
         logger("URL has already been scanned. Rejecting.", 1);
         return $depth--;
     }
-    if (substr($url, 0, strlen($site)) != $site) {
+    if (substr($url, 0, strlen($real_site)) != $real_site) {
         logger("URL is not part of the target domain. Rejecting.", 1);
         return $depth--;
     }
@@ -367,26 +372,33 @@ fwrite($file_stream, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
             http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd\">
 ");
 
-//Global variable, non-user defined
+// Global variable, non-user defined
 $depth = 0;
 $indexed = 0;
 $scanned = array();
 
-//Begin by crawling the original url
-scan_url($site);
+// Reduce domain to root in case of monkey
+$real_site = domain_root($site);
 
-//Finalize sitemap
+if ($real_site != $site){
+    logger("Reformatted site from $site to $real_site", 2);
+}
+
+// Begin by crawling the original url
+scan_url($real_site);
+
+// Finalize sitemap
 fwrite($file_stream, "</urlset>\n");
 fclose($file_stream);
 
-//Generate and print out statistics
+// Generate and print out statistics
 $time_elapsed_secs = round(microtime(true) - $start, 2);
 logger("Sitemap has been generated in " . $time_elapsed_secs . " second" . (($time_elapsed_secs >= 1 ? 's' : '') . "and saved to $file"), 0);
 $size = sizeof($scanned);
 logger("Scanned a total of $size pages and indexed $indexed pages.", 0);
 
-//Rename partial file to the real file name. `rename()` overwrites any existing files
+// Rename partial file to the real file name. `rename()` overwrites any existing files
 rename($file.".partial", $file);
 
-//Declare that the script has finished executing and exit
+// Declare that the script has finished executing and exit
 logger("Operation Completed", 0);
