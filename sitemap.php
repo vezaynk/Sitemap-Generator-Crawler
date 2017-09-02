@@ -337,7 +337,7 @@ if (isset($args['debug'])) {
 }
 
 $start = microtime(true);
-$pf = fopen($file, "w") or die("can't open file");
+$pf = fopen($file.".partial", "w") or die("can't open file");
 if (!$pf) {
     logger("Error: Could not create file - $file", 1);
     exit;
@@ -359,3 +359,5 @@ $time_elapsed_secs = round(microtime(true) - $start, 2);
 logger("Sitemap has been generated in " . $time_elapsed_secs . " second" . (($time_elapsed_secs >= 1 ? 's' : '') . "and saved to $file"), 0);
 $size = sizeof($scanned);
 logger("Scanned a total of $size pages and indexed $indexed pages.", 0);
+rename($file.".partial", $file);
+logger("Operation Completed", 0);
