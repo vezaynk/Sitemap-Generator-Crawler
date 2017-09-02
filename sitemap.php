@@ -175,7 +175,7 @@ function get_links($html, $parent_url)
     if (preg_match_all("/$regexp/siU", $html, $matches)) {
         if ($matches[2]) {
             $found = array_map(function ($href) use (&$parent_url){
-                global $site;
+                global $site, $ignore_arguments;
                 logger("Checking $href", 2);
                 if (strpos($href, '?') !== false) {
                     list($href, $query_string) = explode('?', $href);
@@ -339,6 +339,9 @@ if (isset($args['blacklist'])) {
 }
 if (isset($args['debug'])) {
     $debug = $args['debug'];
+}
+if (isset($args['ignore_variable'])) {
+    $debug = $args['ignore_variable'];
 }
 
 $start = microtime(true);
