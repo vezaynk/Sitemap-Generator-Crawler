@@ -6,10 +6,12 @@
  - Awesome for SEO
  - Crawls faster than online services
  - Verbose logging
+ - Completely usable through CLI
  - Color support in CLI mode
  - Customizable
  - Author is active on Github, open an issue for support
- - Literally the best open-source sitemap written in PHP (and possibly _the_ best)
+ - Literally the best open-source sitemap script written in PHP
+ - Non-restrictive licensing
  
 ## Usage
 Usage is pretty strait forward:
@@ -22,7 +24,7 @@ Usage is pretty strait forward:
     - A sitemap will be generated and saved
     - Submit to Google
  - For better results
-    - Setup a CRON Job to send web requests to this script every so often, this will keep the sitemap.xml file up to date
+    - Setup a CRON Job to execute the php script
 
 # CLI Usage
 

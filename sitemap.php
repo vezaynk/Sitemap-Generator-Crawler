@@ -115,12 +115,14 @@ function ends_with($haystack, $needle)
     return (substr($haystack, -$length) === $needle);
 }
 
-//I don't remember what this function does and why. Please help.
-function get_path($p)
+// Gets path for a relative linl
+// https://somewebsite.com/directory/file => https://somewebsite.com/directory/
+// https://somewebsite.com/directory/subdir/ => https://somewebsite.com/directory/subdir/
+function get_path($path)
 {
-    $a = explode("/", $p);
-    $len = strlen($a[count($a) - 1]);
-    return (substr($p, 0, strlen($p) - $len));
+    $path_depth = explode("/", $path);
+    $len = strlen($path_depth[count($path_depth) - 1]);
+    return (substr($path, 0, strlen($path) - $len));
 }
 
 function domain_root($href)
@@ -129,25 +131,25 @@ function domain_root($href)
     return $url_parts[0].'//'.$url_parts[2].'/';
 }
 
-$ch = curl_init();
+$curl_client = curl_init();
 function get_data($url)
 {
-    global $curl_validate_certificate, $ch;
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_HEADER, 1);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $curl_validate_certificate);
-    $data = curl_exec($ch);
-    $content_type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $redirect_url = curl_getinfo($ch, CURLINFO_REDIRECT_URL);
+    global $curl_validate_certificate, $curl_client;
+    curl_setopt($curl_client, CURLOPT_URL, $url);
+    curl_setopt($curl_client, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($curl_client, CURLOPT_HEADER, 1);
+    curl_setopt($curl_client, CURLOPT_SSL_VERIFYPEER, $curl_validate_certificate);
+    $data = curl_exec($curl_client);
+    $content_type = curl_getinfo($curl_client, CURLINFO_CONTENT_TYPE);
+    $http_code = curl_getinfo($curl_client, CURLINFO_HTTP_CODE);
+    $redirect_url = curl_getinfo($curl_client, CURLINFO_REDIRECT_URL);
     if ($redirect_url) {
         logger("URL is a redirect.", 1);
         scan_url($redirect_url);
     }
     $html = ($http_code != 200 || (!stripos($content_type, "html"))) ? false : $data;
 
-    $timestamp = curl_getinfo($ch, CURLINFO_FILETIME);
+    $timestamp = curl_getinfo($curl_client, CURLINFO_FILETIME);
     $modified = date('c', strtotime($timestamp));
     return array($html, $modified, (stripos($content_type, "image/") && $index_img));
 }
@@ -237,7 +239,7 @@ function get_links($html, $parent_url)
 
 function scan_url($url)
 {
-    global $scanned, $pf, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth, $site, $indexed;
+    global $scanned, $file_stream, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth, $site, $indexed;
     $depth++;
     
     logger("Scanning $url", 2);
@@ -288,7 +290,7 @@ function scan_url($url)
         $map_row .= "   <lastmod>$modified</lastmod>\n";
     }
     $map_row .= "</url>\n";
-    fwrite($pf, $map_row);
+    fwrite($file_stream, $map_row);
     $indexed++;
     logger("Added: " . $url . ((!empty($modified)) ? " [Modified: " . $modified . "]" : ''), 0);
 
@@ -348,12 +350,12 @@ if (isset($args['ignore_variable'])) {
 }
 
 $start = microtime(true);
-$pf = fopen($file.".partial", "w") or die("can't open file");
-if (!$pf) {
+$file_stream = fopen($file.".partial", "w") or die("can't open file");
+if (!$file_stream) {
     logger("Error: Could not create file - $file", 1);
     exit;
 }
-fwrite($pf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+fwrite($file_stream, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <urlset
       xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"
       xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
@@ -364,8 +366,8 @@ $depth = 0;
 $indexed = 0;
 $scanned = array();
 scan_url($site);
-fwrite($pf, "</urlset>\n");
-fclose($pf);
+fwrite($file_stream, "</urlset>\n");
+fclose($file_stream);
 $time_elapsed_secs = round(microtime(true) - $start, 2);
 logger("Sitemap has been generated in " . $time_elapsed_secs . " second" . (($time_elapsed_secs >= 1 ? 's' : '') . "and saved to $file"), 0);
 $size = sizeof($scanned);
