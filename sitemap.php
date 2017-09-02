@@ -55,6 +55,8 @@ $blacklist = array(
     "https://www.knyz.org/supersecret"
 );
 
+//Experimental/Unsupported
+$index_img = false;
 
 /* NO NEED TO EDIT BELOW THIS LINE */
 
@@ -141,9 +143,10 @@ function get_data($url)
         scan_url($redirect_url);
     }
     $html = ($http_code != 200 || (!stripos($content_type, "html"))) ? false : $data;
+
     $timestamp = curl_getinfo($ch, CURLINFO_FILETIME);
     $modified = date('c', strtotime($timestamp));
-    return array($html, $modified);
+    return array($html, $modified, (stripos($content_type, "image/") && $index_img));
 }
 
 
@@ -168,8 +171,8 @@ function get_links($html, $parent_url)
     $regexp = "<a\s[^>]*href=(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
     if (preg_match_all("/$regexp/siU", $html, $matches)) {
         if ($matches[2]) {
-            $found = array_map(function ($href) {
-                global $site, $parent_url;
+            $found = array_map(function ($href) use (&$parent_url){
+                global $site;
                 logger("Checking $href", 2);
                 if (strpos($href, '?') !== false) {
                     list($href, $query_string) = explode('?', $href);
@@ -178,6 +181,10 @@ function get_links($html, $parent_url)
                     $query_string = '';
                 }
             
+                if ($href==""){
+                    return false;
+                }
+
                 if (strpos($href, "#") !== false) {
                     logger("Dropping pound.", 2);
                     $href = strtok($href, "#");
@@ -229,8 +236,6 @@ function scan_url($url)
     global $scanned, $pf, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth, $site, $indexed;
     $depth++;
     
-    //Assume URL is Okay until it isn't
-    $proceed = true;
     logger("Scanning $url", 2);
     if (is_scanned($url)) {
         logger("URL has already been scanned. Rejecting.", 1);
@@ -249,7 +254,11 @@ function scan_url($url)
     array_push($scanned, $url);
 
     //Send cURL request
-    list($html, $modified) = get_data($url);
+    list($html, $modified, $is_image) = get_data($url);
+
+    if ($is_image){
+        //Url is an image
+    }
 
     if (!$html) {
         logger("Invalid Document. Rejecting.", 1);
