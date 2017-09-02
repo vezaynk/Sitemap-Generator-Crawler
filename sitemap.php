@@ -180,10 +180,6 @@ function get_links($html, $parent_url)
                 } else {
                     $query_string = '';
                 }
-            
-                if ($href==""){
-                    return false;
-                }
 
                 if (strpos($href, "#") !== false) {
                     logger("Dropping pound.", 2);
@@ -288,7 +284,9 @@ function scan_url($url)
     $indexed++;
     logger("Added: " . $url . ((!empty($modified)) ? " [Modified: " . $modified . "]" : ''), 0);
 
-    $links = get_links($html, $url);
+    $links = array_filter(get_links($html, $url), function ($item){
+        return $item;
+    });
     logger("Found urls: " . join(", ", $links), 2);
     foreach ($links as $href) {
         if ($href) {
