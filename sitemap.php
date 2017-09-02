@@ -179,11 +179,10 @@ function get_links($html, $parent_url)
             $found = array_map(function ($href) use (&$parent_url){
                 global $site, $ignore_arguments;
                 logger("Checking $href", 2);
+                $query_string = '';
                 if (strpos($href, '?') !== false) {
                     list($href, $query_string) = explode('?', $href);
                     $query_string = str_replace( '&amp;', '&', $query_string );
-                } else {
-                    $query_string = '';
                 }
                 if ($ignore_arguments){
                     $query_string = '';
