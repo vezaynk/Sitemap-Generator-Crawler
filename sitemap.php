@@ -213,13 +213,16 @@ function get_links($html, $parent_url)
                 if (!filter_var($href, FILTER_VALIDATE_URL)) {
                     logger("URL is not valid. Rejecting.", 1);
                     return false;
-                } elseif (substr($href, 0, strlen($site)) != $site) {
+                }
+                if (substr($href, 0, strlen($site)) != $site) {
                     logger("URL is not part of the target domain. Rejecting.", 1);
                     return false;
-                } elseif (is_scanned($href . ($query_string?'?'.$query_string:''))) {
-                    logger("URL has already been scanned. Rejecting.", 1);
+                }
+                if (is_scanned($href . ($query_string?'?'.$query_string:''))) {
+                    //logger("URL has already been scanned. Rejecting.", 1);
                     return false;
-                } elseif (!check_blacklist($href)) {
+                }
+                if (!check_blacklist($href)) {
                     logger("URL is blacklisted. Rejecting.", 1);
                     return false;
                 }
