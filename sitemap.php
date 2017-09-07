@@ -203,7 +203,10 @@ function get_links($html, $parent_url)
                         logger("URL is an invalid protocol", 1);
                         return false;
                     }
-                    if ($href == '/') {
+                    if ($href == '/' && !$html) {
+                        logger("Fixed double slash url", 2);
+                        $href = $real_site;
+                    } elseif ($href == '/') {
                         logger("$href is domain root", 2);
                         $href = $real_site . $href;
                     } elseif (substr($href, 0, 1) == '/') {
