@@ -20,7 +20,7 @@ Usage is pretty strait forward:
     - Select URL to crawl
     - Configure blacklists, accepts the use of wildcards (example: http://example.com/private/* and *.jpg)
  - Generate sitemap
-    - Either send a GET request to this script or simply point your browser
+    - Either send a GET request to this script or use it from the CLI as seen below
     - A sitemap will be generated and saved
     - Submit to Google
  - For better results
@@ -53,6 +53,16 @@ Next, let's tackle the `$debug` variable. All the same concepts apply but the sy
 `php sitemap.php debug\["add"]=true\&debug\["warn"]=false\&debug\["reject"]=true`
 
 **Important note**: Overriding an array does exactly what it means. Previously defined elements are destroyed.
+
+# Acknowledgements
+
+This section is devoted as a *thank you* for everybody who helped create this script.
+
+[Richard Leishman](https://github.com/mrl22) and [Web Forward](http://www.webfwd.co.uk/) for the regex at the heart of the script.  
+[Anatoli Nicolae](https://github.com/anatolinicolae) for fixing a bug in the regex  
+[Mario Bouchard](https://github.com/mbouchard) for fixing #32 and #35 with his first pull request  
+[Santeri Kannisto](https://github.com/2globalnomads) from [2 Global Nomads](https://www.2globalnomads.info/) for a number of features and many, many bug reports
+
 
 # License
 
