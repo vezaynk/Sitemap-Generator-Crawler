@@ -99,7 +99,7 @@ function is_scanned($url)
     if (in_array($url, $scanned)) {
         return true;
     }
-    
+
     //Check if in array as dir and non-dir
     $url = ends_with($url, "/") ? explode("/", $url)[0] : $url . "/";
     if (in_array($url, $scanned)) {
@@ -214,8 +214,8 @@ function get_links($html, $parent_url)
                     logger("Dropping pound.", 2);
                     $href = strtok($href, "#");
                 }
-                                
-                                
+
+
                 if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://")) {
                     // Link does not call (potentially) external page
                     if (strpos($href, ":")) {
@@ -224,7 +224,7 @@ function get_links($html, $parent_url)
                     }
                     if ($href == '/') {
                         logger("$href is domain root", 2);
-                        $href = $real_site . $href;
+                        $href = rtrim($real_site, '/') . '/';
                     } elseif (substr($href, 0, 1) == '/') {
                         logger("$href is relative to root, convert to absolute", 2);
                         $href = domain_root($real_site) . substr($href, 1);
@@ -263,7 +263,7 @@ function scan_url($url)
 {
     global $scanned, $file_stream, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth, $real_site, $indexed;
     $depth++;
-    
+
     logger("Scanning $url", 2);
     if (is_scanned($url)) {
         logger("URL has already been scanned. Rejecting.", 1);
@@ -277,7 +277,7 @@ function scan_url($url)
         logger("Maximum depth exceeded. Rejecting.", 1);
         return $depth--;
     }
-    
+
     //Note that URL has been scanned
     array_push($scanned, $url);
 
