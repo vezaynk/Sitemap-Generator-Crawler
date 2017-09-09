@@ -51,7 +51,6 @@ $priority = "1";
 //Use this list to exlude non-html files to increase performance and save bandwidth
 $blacklist = array(
     "*.jpg",
-    "*/secrets/*",
     "https://www.knyz.org/supersecret"
 );
 
@@ -297,6 +296,12 @@ function get_links($html, $parent_url, $regexp)
                 global $real_site, $ignore_arguments;
                 logger("Checking $href", 2);
 
+
+                if (strpos($href, "#") !== false) {
+                    logger("Dropping pound.", 2);
+                    $href = strtok($href, "#");
+                }
+
                 //Seperate $href from $query_string
                 $query_string = '';
                 if (strpos($href, '?') !== false) {
@@ -307,10 +312,6 @@ function get_links($html, $parent_url, $regexp)
                 }
                 if ($ignore_arguments){
                     $query_string = '';
-                }
-                if (strpos($href, "#") !== false) {
-                    logger("Dropping pound.", 2);
-                    $href = strtok($href, "#");
                 }
 
 
