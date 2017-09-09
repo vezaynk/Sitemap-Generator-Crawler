@@ -135,35 +135,49 @@ function domain_root($href)
     return $url_parts[0].'//'.$url_parts[2].'/';
 }
 
+//The curl client is create outside of the function to avoid re-creating it for performance reasons
 $curl_client = curl_init();
 function get_data($url)
 {
     global $curl_validate_certificate, $curl_client;
+
+    //Set URL
     curl_setopt($curl_client, CURLOPT_URL, $url);
+    //Follow redirects and get new url
     curl_setopt($curl_client, CURLOPT_RETURNTRANSFER, 1);
+    //Get headers
     curl_setopt($curl_client, CURLOPT_HEADER, 1);
+    //Optionally avoid validating SSL
     curl_setopt($curl_client, CURLOPT_SSL_VERIFYPEER, $curl_validate_certificate);
+    
+    //Get data
     $data = curl_exec($curl_client);
     $content_type = curl_getinfo($curl_client, CURLINFO_CONTENT_TYPE);
     $http_code = curl_getinfo($curl_client, CURLINFO_HTTP_CODE);
     $redirect_url = curl_getinfo($curl_client, CURLINFO_REDIRECT_URL);
+
+    //Scan new url, if redirect
     if ($redirect_url) {
         logger("URL is a redirect.", 1);
         scan_url($redirect_url);
     }
+
+    //If content acceptable, return it. If not, `false`
     $html = ($http_code != 200 || (!stripos($content_type, "html"))) ? false : $data;
 
+    //Additional data
     $timestamp = curl_getinfo($curl_client, CURLINFO_FILETIME);
     $modified = date('c', strtotime($timestamp));
+
+    //Return it as an array
     return array($html, $modified, (stripos($content_type, "image/") && $index_img));
 }
 
-
-function check_blacklist($uri)
+//Try to match string against blacklist
+function check_blacklist($string)
 {
     global $blacklist;
     if (is_array($blacklist)) {
-        $string = $uri;
         foreach ($blacklist as $illegal) {
             if (fnmatch($illegal, $string)) {
                 return false;
@@ -173,19 +187,24 @@ function check_blacklist($uri)
     return true;
 }
 
-
-
+//Extract array of URLs from html document inside of `href`s
 function get_links($html, $parent_url)
 {
+    //Regex matcher
     $regexp = "<a\s[^>]*href=(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
+
     if (preg_match_all("/$regexp/siU", $html, $matches)) {
         if ($matches[2]) {
             $found = array_map(function ($href) use (&$parent_url){
                 global $real_site, $ignore_arguments;
                 logger("Checking $href", 2);
+
+                //Seperate $href from $query_string
                 $query_string = '';
                 if (strpos($href, '?') !== false) {
                     list($href, $query_string) = explode('?', $href);
+
+                    //Parse &amp to not break curl client. See issue #23
                     $query_string = str_replace( '&amp;', '&', $query_string );
                 }
                 if ($ignore_arguments){
