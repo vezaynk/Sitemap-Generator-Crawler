@@ -24,7 +24,7 @@ It is recommended you don't remove the above for future reference.
 */
 
 //Site to crawl
-$site = "https://www.knyz.org/";
+$site = "http://rolf-herbold.de";
 
 //Location to save file
 $file = "sitemap.xml";
@@ -66,8 +66,8 @@ $index_img = false;
 // Optionally configure debug options
 $debug = array(
     "add" => true,
-    "reject" => false,
-    "warn" => false
+    "reject" => true,
+    "warn" => true
 );
 
 // Abstracted function to output formatted logging
@@ -284,11 +284,8 @@ function check_blacklist($string)
 }
 
 //Extract array of URLs from html document inside of `href`s
-function get_links($html, $parent_url)
+function get_links($html, $parent_url, $regexp)
 {
-    //Regex matcher
-    $regexp = "<a\s[^>]*href=(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
-
     if (preg_match_all("/$regexp/siU", $html, $matches)) {
         if ($matches[2]) {
             $found = array_map(function ($href) use (&$parent_url){
@@ -355,6 +352,7 @@ function get_links($html, $parent_url)
     return array();
 }
 
+
 function scan_url($url)
 {
     global $scanned, $file_stream, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth, $real_site, $indexed;
@@ -412,7 +410,12 @@ function scan_url($url)
     $indexed++;
     logger("Added: " . $url . ((!empty($modified)) ? " [Modified: " . $modified . "]" : ''), 0);
 
-    $links = array_filter(get_links($html, $url), function ($item){
+    // Extract urls from <a href="??"></a>
+    $ahrefs = get_links($html, $url, "<a\s[^>]*href=(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>");
+    // Extract urls from <frame src="??">
+    $framesrc = get_links($html, $url, "<frame\s[^>]*src=(\"|'??)([^\" >]*?)\\1[^>]*>");
+    
+    $links = array_filter(array_merge($ahrefs, $framesrc), function ($item){
         return $item;
     });
     logger("Found urls: " . join(", ", $links), 2);
