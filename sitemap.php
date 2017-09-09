@@ -24,7 +24,7 @@ It is recommended you don't remove the above for future reference.
 */
 
 //Site to crawl
-$site = "http://rolf-herbold.de";
+$site = "https://www.knyz.org";
 
 //Location to save file
 $file = "sitemap.xml";
@@ -55,6 +55,9 @@ $blacklist = array(
     "https://www.knyz.org/supersecret"
 );
 
+//Index PDFs
+$index_pdf = true;
+
 //Enable this if your site do require GET arguments to function
 $ignore_arguments = false;
 
@@ -66,8 +69,8 @@ $index_img = false;
 // Optionally configure debug options
 $debug = array(
     "add" => true,
-    "reject" => true,
-    "warn" => true
+    "reject" => false,
+    "warn" => false
 );
 
 // Abstracted function to output formatted logging
@@ -235,7 +238,7 @@ function domain_root($href)
 $curl_client = curl_init();
 function get_data($url)
 {
-    global $curl_validate_certificate, $curl_client;
+    global $curl_validate_certificate, $curl_client, $index_pdf;
 
     //Set URL
     curl_setopt($curl_client, CURLOPT_URL, $url);
@@ -264,7 +267,9 @@ function get_data($url)
     //Additional data
     $timestamp = curl_getinfo($curl_client, CURLINFO_FILETIME);
     $modified = date('c', strtotime($timestamp));
-
+    if (stripos($content_type, "application/pdf") !== false && $index_pdf){
+        $html = "This is a PDF";
+    }
     //Return it as an array
     return array($html, $modified, (stripos($content_type, "image/") && $index_img));
 }
@@ -470,7 +475,10 @@ if (isset($args['debug'])) {
     $debug = $args['debug'];
 }
 if (isset($args['ignore_variable'])) {
-    $debug = $args['ignore_variable'];
+    $ignore_variable = $args['ignore_variable'];
+}
+if (isset($args['pdf_index'])) {
+    $pdf_index = $args['pdf_index'];
 }
 
 //Begin stopwatch for statistics
