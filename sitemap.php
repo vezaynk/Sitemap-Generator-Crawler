@@ -443,10 +443,8 @@ $start = microtime(true);
 
 //Setup file stream
 $tempfile = tempnam(sys_get_temp_dir(), 'sitemap.xml.');
-$file_stream = fopen($tempfile, "w") or die("can't open file");
-if (!$file_stream) {
-    die("Error: Could not create temporary file $tempfile" . "\n");
-}
+$file_stream = fopen($tempfile, "w") or die("Error: Could not create temporary file $tempfile" . "\n");
+
 fwrite($file_stream, $xmlheader);
 
 // Global variable, non-user defined
