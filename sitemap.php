@@ -224,7 +224,7 @@ function get_links($html, $parent_url)
                     }
                     if ($href == '/') {
                         logger("$href is domain root", 2);
-                        $href = rtrim($real_site, '/') . '/';
+                        $href = $real_site;
                     } elseif (substr($href, 0, 1) == '/') {
                         logger("$href is relative to root, convert to absolute", 2);
                         $href = domain_root($real_site) . substr($href, 1);
