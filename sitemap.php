@@ -236,10 +236,9 @@ function get_links($html, $parent_url, $regexp)
                 global $real_site, $ignore_arguments;
                 logger("Checking $href", 2);
 
-
                 if (strpos($href, "#") !== false) {
                     logger("Dropping pound.", 2);
-                    $href = strtok($href, "#");
+                    $href = preg_replace('/\#.*/', '', $href);
                 }
 
                 //Seperate $href from $query_string
