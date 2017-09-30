@@ -450,12 +450,13 @@ fwrite($file_stream, "</urlset>\n");
 fclose($file_stream);
 
 // Pretty-print sitemap
-
-if (`which xmllint`) {
-    logger("Found xmllint, pretty-printing sitemap", 0);
-    $responsevalue = exec('xmllint --format ' . $tempfile . ' -o ' . $tempfile . ' 2>&1', $discardedoutputvalue, $returnvalue);
-    if ($returnvalue) {
-       die("Error: " . $responsevalue . "\n");
+if(PHP_OS != "WINNT") {
+    if (`which xmllint`) {
+        logger("Found xmllint, pretty-printing sitemap", 0);
+        $responsevalue = exec('xmllint --format ' . $tempfile . ' -o ' . $tempfile . ' 2>&1', $discardedoutputvalue, $returnvalue);
+        if ($returnvalue) {
+        die("Error: " . $responsevalue . "\n");
+        }
     }
 }
 
