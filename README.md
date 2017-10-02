@@ -54,6 +54,8 @@ Next, let's tackle the `$debug` variable. All the same concepts apply but the sy
 
 **Important note**: Overriding an array does exactly what it means. Previously defined elements are destroyed.
 
+## Running Tests
+
 # Acknowledgements
 
 This section is devoted as a *thank you* for everybody who helped create this script.

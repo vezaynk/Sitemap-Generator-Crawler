@@ -1,6 +1,6 @@
 <?php
 
-require_once(__DIR__.'/../functions.php');
+require_once(__DIR__.'/../sitemap.functions.php');
 
 class FunctionsTest extends \PHPUnit_Framework_TestCase
 {

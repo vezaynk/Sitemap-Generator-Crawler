@@ -11,7 +11,7 @@ error_reporting(E_ALL);
 require_once( 'sitemap.config.php' );
 
 // Include all functions
-require_once('functions.php');
+require_once('sitemap.functions.php');
 
 //Default html header makes browsers ignore \n
 header("Content-Type: text/plain");
