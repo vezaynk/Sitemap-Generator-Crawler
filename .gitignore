@@ -1,3 +1,6 @@
 sitemap.xml
 log.txt
 sitemap.xml.partial
+/vendor/
+/composer.lock
+/phpunit.xml
