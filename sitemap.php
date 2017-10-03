@@ -19,7 +19,7 @@ header("Content-Type: text/plain");
 $color = false;
 
 // Add PHP CLI support
-if (php_sapi_name() === 'cli') {
+if (php_sapi_name() === 'cli' && PHP_OS != 'WINNT') {
     parse_str(implode('&', array_slice($argv, 1)), $args);
     $color = true;
 }
