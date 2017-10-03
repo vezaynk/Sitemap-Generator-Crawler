@@ -127,7 +127,7 @@ function is_scanned($url)
     }
 
     //Check if in array as dir and non-dir
-    $url = ends_with($url, "/") ? explode("/", $url)[0] : $url . "/";
+    $url = ends_with($url, "/") ? substr($url, 0, -1) : $url . "/";
     if (in_array($url, $scanned)) {
         return true;
     }
