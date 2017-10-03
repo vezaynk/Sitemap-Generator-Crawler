@@ -82,3 +82,7 @@ $debug = array(
     "reject" => false,
     "warn" => false
 );
+
+
+//Modify only if configuration version is broken
+$version_config = 1;

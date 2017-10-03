@@ -18,6 +18,18 @@ header("Content-Type: text/plain");
 
 $color = false;
 
+$version_script = 1;
+
+if ($version_script != $version_functions || $version_functions != $version_config){
+	logger("Script versions mismatch!",3);
+	logger("Update necessary",3);
+	logger("Version of sitemap.functions.php " .$version_functions ,3);
+	logger("Version of sitemap.config.php " .$version_config ,3);
+	logger("Version of sitemap.php " .$version_script ,3);
+	logger("Download new files here: https://www.github.com/knyzorg/sitemap-generator-crawler" ,3);
+	die("Stopped.");
+}
+
 // Add PHP CLI support
 if (php_sapi_name() === 'cli' && PHP_OS != 'WINNT') {
     parse_str(implode('&', array_slice($argv, 1)), $args);
