@@ -3,21 +3,46 @@
 // Abstracted function to output formatted logging
 function logger($message, $type)
 {
-    global $debug;
-    switch ($type) {
-        case 0:
-            //add
-            echo $debug["add"] ? "\033[0;32m [+] $message \033[0m\n" : "";
-            break;
-        case 1:
-            //reject
-            echo $debug["reject"] ? "\033[0;31m [-] $message \033[0m\n" : "";
-            break;
-        case 2:
-            //manipulate
-            echo $debug["warn"] ? "\033[1;33m [!] $message \033[0m\n" : "";
-            break;
-    }
+    global $debug, $color;
+	if ($color){
+		switch ($type) {
+			case 0:
+				//add
+				echo $debug["add"] ? "\033[0;32m [+] $message \033[0m\n" : "";
+				break;
+			case 1:
+				//reject
+				echo $debug["reject"] ? "\033[0;31m [-] $message \033[0m\n" : "";
+				break;
+			case 2:
+				//manipulate
+				echo $debug["warn"] ? "\033[1;33m [!] $message \033[0m\n" : "";
+				break;
+			case 3:
+				//critical
+				echo "\033[1;33m [!] $message \033[0m\n";
+				break;
+		}
+	return;
+	}
+	switch ($type) {
+			case 0:
+				//add
+				echo $debug["add"] ? "[+] $message\n" : "";
+				break;
+			case 1:
+				//reject
+				echo $debug["reject"] ? "31m [-] $message\n" : "";
+				break;
+			case 2:
+				//manipulate
+				echo $debug["warn"] ? "[!] $message\n" : "";
+				break;
+			case 3:
+				//critical
+				echo "[!] $message\n";
+				break;
+		}
 }
 
 function flatten_url($url){
@@ -362,3 +387,4 @@ function scan_url($url)
     $depth--;
 }
 
+$version_functions = 1;
