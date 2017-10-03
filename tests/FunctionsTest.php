@@ -33,5 +33,25 @@ class FunctionsTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse(check_blacklist('http://example.com/private/page.php'));
     }
 
+    public function test_is_scanned()
+    {
+        $GLOBALS['scanned'] = array(
+            'http://example.com/both',
+            'http://example.com/both/',
+            'http://example.com/without',
+            'http://example.com/withslash/',
+        );
+
+        $this->assertTrue(is_scanned('http://example.com/both'));
+        $this->assertTrue(is_scanned('http://example.com/both/'));
+
+        $this->assertTrue(is_scanned('http://example.com/withslash'));
+        $this->assertTrue(is_scanned('http://example.com/withslash/'));
+
+        $this->assertTrue(is_scanned('http://example.com/without'));
+        $this->assertTrue(is_scanned('http://example.com/without/'));
+    }
+
+
 }
 
