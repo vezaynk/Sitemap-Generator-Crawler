@@ -147,13 +147,13 @@ function is_scanned($url)
     global $scanned;
 
     //Check if in array
-    if (in_array($url, $scanned)) {
+    if (array_key_exists($url, $scanned)) {
         return true;
     }
 
     //Check if in array as dir and non-dir
     $url = ends_with($url, "/") ? substr($url, 0, -1) : $url . "/";
-    if (in_array($url, $scanned)) {
+    if (array_key_exists($url, $scanned)) {
         return true;
     }
 
@@ -333,7 +333,7 @@ function scan_url($url)
     }
 
     //Note that URL has been scanned
-    array_push($scanned, $url);
+    $scanned[$url] = 1;
 
     //Send cURL request
     list($html, $modified, $is_image) = get_data($url);
