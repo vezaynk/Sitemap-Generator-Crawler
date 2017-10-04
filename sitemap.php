@@ -86,7 +86,7 @@ fwrite($file_stream, $xmlheader);
 // Global variable, non-user defined
 $depth = 0;
 $indexed = 0;
-$scanned = array();
+$scanned = [];
 
 // Reduce domain to root in case of monkey
 $real_site = domain_root($site);
@@ -114,7 +114,7 @@ fclose($file_stream);
 // Generate and print out statistics
 $time_elapsed_secs = round(microtime(true) - $start, 2);
 logger("Sitemap has been generated in " . $time_elapsed_secs . " second" . (($time_elapsed_secs >= 1 ? 's' : '') . "and saved to $file"), 0);
-$size = sizeof($scanned);
+$size = count($scanned);
 logger("Scanned a total of $size pages and indexed $indexed pages.", 0);
 
 // Rename partial file to the real file name. `rename()` overwrites any existing files
