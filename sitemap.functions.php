@@ -212,7 +212,10 @@ function get_data($url)
     //Scan new url, if redirect
     if ($redirect_url) {
         logger("URL is a redirect.", 1);
-        scan_url($redirect_url);
+        if (strpos($redirect_url, '?') !== false) {
+	     $redirect_url = explode($redirect_url, "?")[0];
+	}
+	scan_url($redirect_url);
     }
 
     //If content acceptable, return it. If not, `false`
