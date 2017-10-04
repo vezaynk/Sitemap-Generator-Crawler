@@ -67,8 +67,8 @@ if (isset($args['blacklist'])) {
 if (isset($args['debug'])) {
     $debug = $args['debug'];
 }
-if (isset($args['ignore_variable'])) {
-    $ignore_variable = $args['ignore_variable'];
+if (isset($args['ignore_arguments'])) {
+    $ignore_arguments = !!$args['ignore_arguments'];
 }
 if (isset($args['pdf_index'])) {
     $pdf_index = $args['pdf_index'];

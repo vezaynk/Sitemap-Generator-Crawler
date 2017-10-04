@@ -258,7 +258,8 @@ function get_links($html, $parent_url, $regexp)
 
                 //Seperate $href from $query_string
                 $query_string = '';
-                if (strpos($href, '?') !== false) {
+                if (strpos($href, '?') !== false) 
+		{
                     list($href, $query_string) = explode('?', $href);
 
                     //Parse &amp to not break curl client. See issue #23
@@ -267,7 +268,10 @@ function get_links($html, $parent_url, $regexp)
                 if ($ignore_arguments){
                     $query_string = '';
                 }
-
+                if (strpos($href, '?') !== false) 
+		{
+		  echo "EFEASDEFSED";
+		}
 
                 if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://")) {
                     // Link does not call (potentially) external page
@@ -386,5 +390,13 @@ function scan_url($url)
     }
     $depth--;
 }
+
+// fnmatch() filler for non-POSIX systems
+
+if(!function_exists('fnmatch')) {
+    function fnmatch($pattern, $string) {
+        return preg_match("#^".strtr(preg_quote($pattern, '#'), array('\*' => '.*', '\?' => '.'))."$#i", $string);
+    } // end
+} // end if
 
 $version_functions = 1;
