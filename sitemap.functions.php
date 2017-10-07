@@ -245,6 +245,22 @@ function check_blacklist($string)
     return true;
 }
 
+function url_to_ascii($url)
+{
+    $host = parse_url($url, PHP_URL_HOST);
+    $asciiHost = idn_to_ascii($host);
+    if (false === $asciiHost) {
+        return false;
+    }
+    $url = str_replace($host, $asciiHost, $url);
+    $path = parse_url($url, PHP_URL_PATH);
+    $encodedPath =array_map(
+      'urlencode',
+      explode('/', $path)
+    );
+    return str_replace($path, implode('/',$encodedPath), $url);
+}
+
 //Extract array of URLs from html document inside of `href`s
 function get_links($html, $parent_url, $regexp)
 {
@@ -294,7 +310,7 @@ function get_links($html, $parent_url, $regexp)
                     }
                 }
                     logger("Result: $href", 2);
-                if (!filter_var($href, FILTER_VALIDATE_URL)) {
+                if (!filter_var(url_to_ascii($href), FILTER_VALIDATE_URL)) {
                     logger("URL is not valid. Rejecting.", 1);
                     return false;
                 }
