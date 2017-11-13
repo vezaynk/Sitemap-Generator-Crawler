@@ -18,7 +18,7 @@ header("Content-Type: text/plain");
 
 $color = false;
 
-$version_script = 1;
+$version_script = 1.1;
 
 if ($version_script != $version_functions || $version_functions != $version_config){
 	logger("Script versions mismatch!",3);

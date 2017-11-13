@@ -24,7 +24,7 @@ It is recommended you don't remove the above for future reference.
 */
 
 // Default site to crawl
-$site = "https://www.knyz.org/";
+$site = "http://rolf-herbold.de/";
 
 // Default sitemap filename
 $file = "sitemap.xml";
@@ -46,7 +46,7 @@ $priority = "1";
 $enable_modified = false;
 
 // Disable this for misconfigured, but tolerable SSL server.
-$curl_validate_certificate = true;
+$curl_validate_certificate = false;
 
 // The pages will be excluded from crawl and sitemap.
 // Use for exluding non-html files to increase performance and save bandwidth.
@@ -78,11 +78,16 @@ http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">';
 
 // Optionally configure debug options
 $debug = array(
+    // Confirms URL Addition
     "add" => true,
+    // Justifies URL rejection
     "reject" => false,
+    // Sets CURLOPT_VERBOSE
+    "curl" => true,
+    // Fills screen with manipulations
     "warn" => false
 );
 
 
 //Modify only if configuration version is broken
-$version_config = 1;
+$version_config = 1.1;

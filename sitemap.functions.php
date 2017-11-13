@@ -188,9 +188,44 @@ function domain_root($href)
 
 //The curl client is create outside of the function to avoid re-creating it for performance reasons
 $curl_client = curl_init();
+// hack to communicate to the get_data function that the document failed because it's a pdf
+
+$is_pdf = false;
+// This function is a lower-level function that intercepts
+// headers and makes them fail under certain conditions.
+function inspect_headers($ch, $data)
+{
+    global $index_pdf, $is_pdf;
+    $redirect_url = curl_getinfo($ch, CURLINFO_REDIRECT_URL);
+    $content_type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+    if ($redirect_url) {
+        logger("URL is a redirect.", 1);
+        if (strpos($redirect_url, '?') !== false) {
+	     $redirect_url = explode($redirect_url, "?")[0];
+	}
+	scan_url($redirect_url);
+    }
+    
+    if ($content_type !== false && !stripos($content_type, "html")) {
+        if (stripos($content_type, "application/pdf") !== false && $index_pdf){
+            $is_pdf = true;
+        }
+        echo "It's a PDF!!";
+        return -1;
+    }
+
+    if ($http_code >= 400){
+        return -1;
+    }
+    return strlen($data);
+}
+
+
 function get_data($url)
 {
-    global $curl_validate_certificate, $curl_client, $index_pdf, $crawler_user_agent;
+    global $curl_validate_certificate, $debug, $curl_client, $index_pdf, $crawler_user_agent, $is_pdf;
 
     //Set URL
     curl_setopt($curl_client, CURLOPT_URL, $url);
@@ -202,33 +237,27 @@ function get_data($url)
     curl_setopt($curl_client, CURLOPT_SSL_VERIFYPEER, $curl_validate_certificate);
     //Set user agent
     curl_setopt($curl_client, CURLOPT_USERAGENT, $crawler_user_agent);
+    // Optional Verbose
+    curl_setopt ($curl_client, CURLOPT_VERBOSE, $debug["curl"]);
+    // Inspect headers
+    curl_setopt( $curl_client, CURLOPT_HEADERFUNCTION, "inspect_headers" );
 
     //Get data
     $data = curl_exec($curl_client);
-    $content_type = curl_getinfo($curl_client, CURLINFO_CONTENT_TYPE);
-    $http_code = curl_getinfo($curl_client, CURLINFO_HTTP_CODE);
-    $redirect_url = curl_getinfo($curl_client, CURLINFO_REDIRECT_URL);
-
-    //Scan new url, if redirect
-    if ($redirect_url) {
-        logger("URL is a redirect.", 1);
-        if (strpos($redirect_url, '?') !== false) {
-	     $redirect_url = explode($redirect_url, "?")[0];
-	}
-	scan_url($redirect_url);
-    }
 
     //If content acceptable, return it. If not, `false`
-    $html = ($http_code != 200 || (!stripos($content_type, "html"))) ? false : $data;
-
+    $html = $data;
+    
+    if ($is_pdf) {
+        $html = true;
+        $is_pdf = false;
+    }
     //Additional data
     $timestamp = curl_getinfo($curl_client, CURLINFO_FILETIME);
     $modified = date('c', strtotime($timestamp));
-    if (stripos($content_type, "application/pdf") !== false && $index_pdf){
-        $html = "This is a PDF";
-    }
+    
     //Return it as an array
-    return array($html, $modified, (stripos($content_type, "image/") && $index_img));
+    return array($html, $modified, false);
 }
 
 //Try to match string against blacklist
@@ -402,4 +431,4 @@ if(!function_exists('fnmatch')) {
     } // end
 } // end if
 
-$version_functions = 1;
+$version_functions = 1.1;
