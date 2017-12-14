@@ -205,6 +205,8 @@ function inspect_headers($ch, $data)
         if (strpos($redirect_url, '?') !== false) {
 	     $redirect_url = explode($redirect_url, "?")[0];
 	}
+	unset($url,$data);
+
 	scan_url($redirect_url);
     }
     
@@ -405,7 +407,8 @@ function scan_url($url)
     fwrite($file_stream, $map_row);
     $indexed++;
     logger("Added: " . $url . ((!empty($modified)) ? " [Modified: " . $modified . "]" : ''), 0);
-
+    unset($is_image,$map_row);
+    
     // Extract urls from <a href="??"></a>
     $ahrefs = get_links($html, $url, "<a\s[^>]*href=(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>");
     // Extract urls from <frame src="??">
@@ -414,6 +417,8 @@ function scan_url($url)
     $links = array_filter(array_merge($ahrefs, $framesrc), function ($item){
         return $item;
     });
+    unset($html,$url,$ahrefs,$framesrc);
+    
     logger("Found urls: " . join(", ", $links), 2);
     foreach ($links as $href) {
         if ($href) {
