@@ -18,7 +18,7 @@ header("Content-Type: text/plain");
 
 $color = false;
 
-$version_script = 1;
+$version_script = 2;
 
 if ($version_script != $version_functions || $version_functions != $version_config){
 	logger("Script versions mismatch!",3);
@@ -119,6 +119,9 @@ logger("Scanned a total of $size pages and indexed $indexed pages.", 0);
 
 // Rename partial file to the real file name. `rename()` overwrites any existing files
 rename($tempfile, $file);
+
+// Apply permissions
+chmod($file, $permissions);
 
 // Declare that the script has finished executing and exit
 logger("Operation Completed", 0);

@@ -402,4 +402,4 @@ if(!function_exists('fnmatch')) {
     } // end
 } // end if
 
-$version_functions = 1;
+$version_functions = 2;

@@ -28,6 +28,7 @@ $site = "https://www.knyz.org/";
 
 // Default sitemap filename
 $file = "sitemap.xml";
+$permissions = "0644";
 
 // Depth of the crawl, 0 is unlimited
 $max_depth = 0;
@@ -85,4 +86,4 @@ $debug = array(
 
 
 //Modify only if configuration version is broken
-$version_config = 1;
+$version_config = 2;
