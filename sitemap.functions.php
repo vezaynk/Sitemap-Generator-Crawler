@@ -4,48 +4,49 @@
 function logger($message, $type)
 {
     global $debug, $color;
-	if ($color){
-		switch ($type) {
-			case 0:
-				//add
-				echo $debug["add"] ? "\033[0;32m [+] $message \033[0m\n" : "";
-				break;
-			case 1:
-				//reject
-				echo $debug["reject"] ? "\033[0;31m [-] $message \033[0m\n" : "";
-				break;
-			case 2:
-				//manipulate
-				echo $debug["warn"] ? "\033[1;33m [!] $message \033[0m\n" : "";
-				break;
-			case 3:
-				//critical
-				echo "\033[1;33m [!] $message \033[0m\n";
-				break;
-		}
-	return;
-	}
-	switch ($type) {
-			case 0:
-				//add
-				echo $debug["add"] ? "[+] $message\n" : "";
-				break;
-			case 1:
-				//reject
-				echo $debug["reject"] ? "31m [-] $message\n" : "";
-				break;
-			case 2:
-				//manipulate
-				echo $debug["warn"] ? "[!] $message\n" : "";
-				break;
-			case 3:
-				//critical
-				echo "[!] $message\n";
-				break;
-		}
+    if ($color) {
+        switch ($type) {
+            case 0:
+                //add
+                echo $debug["add"] ? "\033[0;32m [+] $message \033[0m\n" : "";
+                break;
+            case 1:
+                //reject
+                echo $debug["reject"] ? "\033[0;31m [-] $message \033[0m\n" : "";
+                break;
+            case 2:
+                //manipulate
+                echo $debug["warn"] ? "\033[1;33m [!] $message \033[0m\n" : "";
+                break;
+            case 3:
+                //critical
+                echo "\033[1;33m [!] $message \033[0m\n";
+                break;
+        }
+        return;
+    }
+    switch ($type) {
+        case 0:
+            //add
+            echo $debug["add"] ? "[+] $message\n" : "";
+            break;
+        case 1:
+            //reject
+            echo $debug["reject"] ? "31m [-] $message\n" : "";
+            break;
+        case 2:
+            //manipulate
+            echo $debug["warn"] ? "[!] $message\n" : "";
+            break;
+        case 3:
+            //critical
+            echo "[!] $message\n";
+            break;
+    }
 }
 
-function flatten_url($url){
+function flatten_url($url)
+{
     global $real_site;
     $path = explode($real_site, $url)[1];
     return $real_site . remove_dot_seg($path);
@@ -58,7 +59,8 @@ function flatten_url($url){
  * @return string
  * @link http://www.ietf.org/rfc/rfc3986.txt
  */
-function remove_dot_seg($path) {
+function remove_dot_seg($path)
+{
     if (strpos($path, '.') === false) {
         return $path;
     }
@@ -183,7 +185,7 @@ function get_path($path)
 function domain_root($href)
 {
     $url_parts = explode('/', $href);
-    return $url_parts[0].'//'.$url_parts[2].'/';
+    return $url_parts[0] . '//' . $url_parts[2] . '/';
 }
 
 //The curl client is create outside of the function to avoid re-creating it for performance reasons
@@ -213,10 +215,16 @@ function get_data($url)
     if ($redirect_url) {
         logger("URL is a redirect.", 1);
         if (strpos($redirect_url, '?') !== false) {
-	     $redirect_url = explode($redirect_url, "?")[0];
-	}
-	unset($url,$data);
-	scan_url($redirect_url);
+            $redirect_url = explode($redirect_url, "?")[0];
+        }
+        unset($url, $data);
+
+        if (!check_blacklist($redirect_url)) {
+            echo logger("Redirected URL is in blacklist", 1);
+
+        } else {
+            scan_url($redirect_url);
+        }
     }
 
     //If content acceptable, return it. If not, `false`
@@ -225,7 +233,7 @@ function get_data($url)
     //Additional data
     $timestamp = curl_getinfo($curl_client, CURLINFO_FILETIME);
     $modified = date('c', strtotime($timestamp));
-    if (stripos($content_type, "application/pdf") !== false && $index_pdf){
+    if (stripos($content_type, "application/pdf") !== false && $index_pdf) {
         $html = "This is a PDF";
     }
     //Return it as an array
@@ -251,8 +259,9 @@ function get_links($html, $parent_url, $regexp)
 {
     if (preg_match_all("/$regexp/siU", $html, $matches)) {
         if ($matches[2]) {
-            $found = array_map(function ($href) use (&$parent_url){
+            $found = array_map(function ($href) use (&$parent_url) {
                 global $real_site, $ignore_arguments;
+
                 logger("Checking $href", 2);
 
                 if (strpos($href, "#") !== false) {
@@ -262,20 +271,18 @@ function get_links($html, $parent_url, $regexp)
 
                 //Seperate $href from $query_string
                 $query_string = '';
-                if (strpos($href, '?') !== false) 
-		{
+                if (strpos($href, '?') !== false) {
                     list($href, $query_string) = explode('?', $href);
 
                     //Parse &amp to not break curl client. See issue #23
-                    $query_string = str_replace( '&amp;', '&', $query_string );
+                    $query_string = str_replace('&amp;', '&', $query_string);
                 }
-                if ($ignore_arguments){
+                if ($ignore_arguments) {
                     $query_string = '';
                 }
-                if (strpos($href, '?') !== false) 
-		{
-		  echo "EFEASDEFSED";
-		}
+                if (strpos($href, '?') !== false) {
+                    echo "EFEASDEFSED";
+                }
 
                 if ((substr($href, 0, 7) != "http://") && (substr($href, 0, 8) != "https://")) {
                     // Link does not call (potentially) external page
@@ -294,7 +301,7 @@ function get_links($html, $parent_url, $regexp)
                         $href = get_path($parent_url) . $href;
                     }
                 }
-                    logger("Result: $href", 2);
+                logger("Result: $href", 2);
                 if (!filter_var($href, FILTER_VALIDATE_URL)) {
                     logger("URL is not valid. Rejecting.", 1);
                     return false;
@@ -303,7 +310,7 @@ function get_links($html, $parent_url, $regexp)
                     logger("URL is not part of the target domain. Rejecting.", 1);
                     return false;
                 }
-                if (is_scanned($href . ($query_string?'?'.$query_string:''))) {
+                if (is_scanned($href . ($query_string ? '?' . $query_string : ''))) {
                     //logger("URL has already been scanned. Rejecting.", 1);
                     return false;
                 }
@@ -311,7 +318,7 @@ function get_links($html, $parent_url, $regexp)
                     logger("URL is blacklisted. Rejecting.", 1);
                     return false;
                 }
-                return flatten_url($href . ($query_string?'?'.$query_string:''));
+                return flatten_url($href . ($query_string ? '?' . $query_string : ''));
             }, $matches[2]);
             return $found;
         }
@@ -319,7 +326,6 @@ function get_links($html, $parent_url, $regexp)
     logger("Found nothing", 2);
     return array();
 }
-
 
 function scan_url($url)
 {
@@ -346,7 +352,7 @@ function scan_url($url)
     //Send cURL request
     list($html, $modified, $is_image) = get_data($url);
 
-    if ($is_image){
+    if ($is_image) {
         //Url is an image
     }
 
@@ -358,7 +364,7 @@ function scan_url($url)
         unset($modified);
     }
 
-    if (strpos($url, "&") && strpos($url, ";")===false) {
+    if (strpos($url, "&") && strpos($url, ";") === false) {
         $url = str_replace("&", "&amp;", $url);
     }
 
@@ -377,22 +383,23 @@ function scan_url($url)
     fwrite($file_stream, $map_row);
     $indexed++;
     logger("Added: " . $url . ((!empty($modified)) ? " [Modified: " . $modified . "]" : ''), 0);
-    unset($is_image,$map_row);
-    
+    unset($is_image, $map_row);
+
     // Extract urls from <a href="??"></a>
     $ahrefs = get_links($html, $url, "<a\s[^>]*href=(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>");
+
     // Extract urls from <frame src="??">
     $framesrc = get_links($html, $url, "<frame\s[^>]*src=(\"|'??)([^\" >]*?)\\1[^>]*>");
 
-    $links = array_filter(array_merge($ahrefs, $framesrc), function ($item){
+    $links = array_filter(array_merge($ahrefs, $framesrc), function ($item) {
         return $item;
     });
-    unset($html,$url,$ahrefs,$framesrc);
-    
+    unset($html, $url, $ahrefs, $framesrc);
+
     logger("Found urls: " . join(", ", $links), 2);
     foreach ($links as $href) {
         if ($href) {
-           scan_url($href);
+            scan_url($href);
         }
     }
     $depth--;
@@ -400,9 +407,10 @@ function scan_url($url)
 
 // fnmatch() filler for non-POSIX systems
 
-if(!function_exists('fnmatch')) {
-    function fnmatch($pattern, $string) {
-        return preg_match("#^".strtr(preg_quote($pattern, '#'), array('\*' => '.*', '\?' => '.'))."$#i", $string);
+if (!function_exists('fnmatch')) {
+    function fnmatch($pattern, $string)
+    {
+        return preg_match("#^" . strtr(preg_quote($pattern, '#'), array('\*' => '.*', '\?' => '.')) . "$#i", $string);
     } // end
 } // end if
 
