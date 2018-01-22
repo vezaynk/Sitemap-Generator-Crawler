@@ -87,6 +87,7 @@ fwrite($file_stream, $xmlheader);
 $depth = 0;
 $indexed = 0;
 $scanned = array();
+$deferredLinks = array();
 
 // Reduce domain to root in case of monkey
 $real_site = domain_root($site);

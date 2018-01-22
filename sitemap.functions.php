@@ -329,7 +329,7 @@ function get_links($html, $parent_url, $regexp)
 
 function scan_url($url)
 {
-    global $scanned, $file_stream, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth, $real_site, $indexed;
+    global $scanned, $deferredLinks, $file_stream, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth, $real_site, $indexed;
     $depth++;
 
     logger("Scanning $url", 2);
@@ -348,7 +348,8 @@ function scan_url($url)
 
     //Note that URL has been scanned
     array_push($scanned, $url);
-
+    $deferredLinks = array_diff($deferredLinks, $scanned);
+    
     //Send cURL request
     list($html, $modified, $is_image) = get_data($url);
 
@@ -391,12 +392,16 @@ function scan_url($url)
     // Extract urls from <frame src="??">
     $framesrc = get_links($html, $url, "<frame\s[^>]*src=(\"|'??)([^\" >]*?)\\1[^>]*>");
 
-    $links = array_filter(array_merge($ahrefs, $framesrc), function ($item) {
-        return $item;
+    $links = array_filter(array_merge($ahrefs, $framesrc), function ($item) use (&$deferredLinks) {
+        return $item && !in_array($item, $deferredLinks);
     });
     unset($html, $url, $ahrefs, $framesrc);
 
     logger("Found urls: " . join(", ", $links), 2);
+
+    //Note that URL has been scanned
+    $deferredLinks = array_merge($deferredLinks, $links);
+
     foreach ($links as $href) {
         if ($href) {
             scan_url($href);
