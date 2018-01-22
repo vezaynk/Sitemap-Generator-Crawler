@@ -148,14 +148,13 @@ function is_scanned($url)
 {
     global $scanned;
 
-    //Check if in array
-    if (in_array($url, $scanned)) {
+    if (isset($scanned[$url])) {
         return true;
     }
 
     //Check if in array as dir and non-dir
     $url = ends_with($url, "/") ? substr($url, 0, -1) : $url . "/";
-    if (in_array($url, $scanned)) {
+    if (isset($scanned[$url])) {
         return true;
     }
 
@@ -347,8 +346,7 @@ function scan_url($url)
     }
 
     //Note that URL has been scanned
-    array_push($scanned, $url);
-    $deferredLinks = array_diff($deferredLinks, $scanned);
+    $scanned[$url] = 1;
     
     //Send cURL request
     list($html, $modified, $is_image) = get_data($url);
@@ -393,14 +391,18 @@ function scan_url($url)
     $framesrc = get_links($html, $url, "<frame\s[^>]*src=(\"|'??)([^\" >]*?)\\1[^>]*>");
 
     $links = array_filter(array_merge($ahrefs, $framesrc), function ($item) use (&$deferredLinks) {
-        return $item && !in_array($item, $deferredLinks);
+        return $item && !isset($deferredLinks[$item]);
     });
     unset($html, $url, $ahrefs, $framesrc);
 
     logger("Found urls: " . join(", ", $links), 2);
 
-    //Note that URL has been scanned
-    $deferredLinks = array_merge($deferredLinks, $links);
+    //Note that URL has been deferred
+    foreach ($links as $href) {
+        if ($href) {
+            $deferredLinks[$href] = 1;
+        }
+    }
 
     foreach ($links as $href) {
         if ($href) {
