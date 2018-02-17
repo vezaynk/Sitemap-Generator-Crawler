@@ -344,12 +344,12 @@ function scan_url($url)
         logger("Maximum depth exceeded. Rejecting.", 1);
         return $depth--;
     }
-
-    //Note that URL has been scanned
-    $scanned[$url] = 1;
     
     //Send cURL request
     list($html, $modified, $is_image) = get_data($url);
+
+    //Note that URL has been scanned
+    $scanned[$url] = 1;
 
     if ($is_image) {
         //Url is an image
