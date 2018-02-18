@@ -191,7 +191,7 @@ function domain_root($href)
 $curl_client = curl_init();
 function get_data($url)
 {
-    global $curl_validate_certificate, $curl_client, $index_pdf, $crawler_user_agent;
+    global $curl_validate_certificate, $curl_client, $index_pdf, $index_img, $crawler_user_agent;
 
     //Set URL
     curl_setopt($curl_client, CURLOPT_URL, $url);
@@ -236,7 +236,7 @@ function get_data($url)
         $html = "This is a PDF";
     }
     //Return it as an array
-    return array($html, $modified, (stripos($content_type, "image/") && $index_img));
+    return array($html, $modified, ((stripos($content_type, "image/")!==false) && $index_img));
 }
 
 //Try to match string against blacklist
