@@ -73,11 +73,7 @@ http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">';
     {
         //The curl client is create outside of the function to avoid re-creating it for performance reasons
         $this->curl_client = curl_init();
-        $this->real_site = $this->getDomainRoot($this->site);
 
-        if ($this->real_site != $this->site) {
-            $this->logger("Reformatted site from $this->site to $this->real_site", 2);
-        }
 
     }
 
@@ -87,13 +83,18 @@ http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">';
                 $this->{$key}= $value;
             }
         }
-        $this->real_site = $this->getDomainRoot($this->site);
     }
     /**
      * @return string|void
      */
     public function start()
     {
+        $this->real_site = $this->getDomainRoot($this->site);
+
+        if ($this->real_site != $this->site) {
+            $this->logger("Reformatted site from $this->site to $this->real_site", 2);
+        }
+
         //Begin stopwatch for statistics
         $start = microtime(true);
 
