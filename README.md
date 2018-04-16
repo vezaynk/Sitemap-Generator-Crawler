@@ -1,4 +1,5 @@
 # Sitemap Generator
+Class implementation
 
 ## Features
  - Actually crawls webpages like Google would
@@ -26,17 +27,55 @@ Usage is pretty strait forward:
  - For better results
     - Setup a CRON Job to execute the php script
 
-# CLI Usage
+## Installation
 
-Sometimes you need to run the script for a large number of domains (If you are a webhost for example). This sitemap generator allows you to override any variable on-the-fly in CLI.
+The preferred way to install this extension is through [composer](http://getcomposer.org/download/).
 
-## Basic usage
+Either run
+
+```
+php composer.phar require --prefer-dist knyzorg/sitemap-generator-crawler "dev-master"
+```
+
+or add
+
+```
+"knyzorg/sitemap-generator-crawler": "dev-master"
+```
+
+to the require section of your `composer.json` file.
+
+## Usage
+
+For example, in your php-framework or your Class
+```php
+use knyzorg\sitemap\SitemapCrawler;
+
+class SitemapController extends Controller
+{
+    public function actionIndex()
+    {
+        $crawler = new SitemapCrawler();
+        $crawler->site='http://mites/';
+        $crawler->file= \Yii::getAlias("@frontend/web/sitemap.xml");
+        $crawler->start();
+    }
+}
+```
+
+
+## CLI Usage
+
+Sometimes you need to run the script for a large number of domains (If you are a webhost for example). 
+This sitemap generator allows you to override any variable on-the-fly in CLI.
+
+### Basic usage
 
 Scan `http://www.mywebsite.com/` and output the sitemap to `/home/user/public_html/sitemap.xml`:
 
 `php sitemap.php file=/home/user/public_html/sitemap.xml site=http://www.mywebsite.com/`
 
-## Advanced usage
+### Advanced usage
 
 While the above is the most common use-case, sometimes you need to modify other things such as `$debug` or `$blacklist`. I will do a bit of explaining about how shells work so you don't mess up.
 

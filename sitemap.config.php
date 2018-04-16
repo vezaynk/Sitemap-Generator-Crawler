@@ -22,68 +22,72 @@ Usage is pretty strait forward:
 
 It is recommended you don't remove the above for future reference.
 */
+return [
+    // Default site to crawl
+    'site' => "https://www.knyz.org/",
 
-// Default site to crawl
-$site = "https://www.knyz.org/";
+    // Default sitemap filename
+    'file' => "sitemap.xml",
+    'permissions' => 0644,
 
-// Default sitemap filename
-$file = "sitemap.xml";
-$permissions = 0644;
+    // Depth of the crawl, 0 is unlimited
+    'max_depth' => 0,
 
-// Depth of the crawl, 0 is unlimited
-$max_depth = 0;
+    // Show changefreq
+    'enable_frequency' => false,
 
-// Show changefreq
-$enable_frequency = false;
+    // Show priority
+    'enable_priority' => false,
 
-// Show priority
-$enable_priority = false;
+    // Default values for changefreq and priority
+    'freq' => "daily",
+    'priority' => "1",
 
-// Default values for changefreq and priority
-$freq = "daily";
-$priority = "1";
+    // Add lastmod based on server response. Unreliable and disabled by default.
+    'enable_modified' => false,
 
-// Add lastmod based on server response. Unreliable and disabled by default.
-$enable_modified = false;
+    // Disable this for misconfigured, but tolerable SSL server.
+    'curl_validate_certificate' => true,
 
-// Disable this for misconfigured, but tolerable SSL server.
-$curl_validate_certificate = true;
+    // The pages will be excluded from crawl and sitemap.
+    // Use for exluding non-html files to increase performance and save bandwidth.
+    'blacklist' => array(
+        "*.jpg",
+        "*/secrets/*",
+        "https://www.knyz.org/supersecret"
+    ),
 
-// The pages will be excluded from crawl and sitemap.
-// Use for exluding non-html files to increase performance and save bandwidth.
-$blacklist = array(
-    "*.jpg",
-    "*/secrets/*",
-    "https://www.knyz.org/supersecret"
-);
+    // Enable this if your site do requires GET arguments to function
+    'ignore_arguments' => false,
 
-// Enable this if your site do requires GET arguments to function
-$ignore_arguments = false;
+    // Not yet implemented. See issue #19 for more information.
+    'index_img' => false,
 
-// Not yet implemented. See issue #19 for more information.
-$index_img = false;
+    //Index PDFs
+    'index_pdf' => true,
 
-//Index PDFs
-$index_pdf = true;
+    // Set the user agent for crawler
+    'crawler_user_agent' => "Mozilla/5.0 (compatible, Sitemap Generator Crawler, +https://github.com/knyzorg/Sitemap-Generator-Crawler)",
 
-// Set the user agent for crawler
-$crawler_user_agent = "Mozilla/5.0 (compatible; Sitemap Generator Crawler; +https://github.com/knyzorg/Sitemap-Generator-Crawler)";
-
-// Header of the sitemap.xml
-$xmlheader ='<?xml version="1.0" encoding="UTF-8"?>
+    // Header of the sitemap.xml
+    'xmlheader' => '<?xml version="1.0" encoding="UTF-8"?>
 <urlset
 xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">';
+http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">',
 
-// Optionally configure debug options
-$debug = array(
-    "add" => true,
-    "reject" => false,
-    "warn" => false
-);
+    // Optionally configure debug options
+    'debug' => [
+        "add" => true,
+        "reject" => false,
+        "warn" => false
+    ],
+
+    //Modify only if configuration version is broken
+    'version_config' => 2,
+
+    'color' => false,
+];
 
 
-//Modify only if configuration version is broken
-$version_config = 2;
