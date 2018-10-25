@@ -191,7 +191,7 @@ function domain_root($href)
 $curl_client = curl_init();
 function get_data($url)
 {
-    global $curl_validate_certificate, $curl_client, $index_pdf, $crawler_user_agent;
+    global $curl_validate_certificate, $curl_client, $index_pdf, $crawler_user_agent, $enable_modified;
 
     //Set URL
     curl_setopt($curl_client, CURLOPT_URL, $url);
@@ -230,8 +230,13 @@ function get_data($url)
     $html = ($http_code != 200 || (!stripos($content_type, "html"))) ? false : $data;
 
     //Additional data
-    $timestamp = curl_getinfo($curl_client, CURLINFO_FILETIME);
-    $modified = date('c', strtotime($timestamp));
+    if ($enable_modified){
+        curl_setopt($curl_client, CURLOPT_FILETIME, true);
+        $timestamp = curl_getinfo($curl_client, CURLINFO_FILETIME);
+        $modified = ($timestamp != -1) ? date('c', $timestamp) : null;
+    }
+    else $modified = null;
+
     if (stripos($content_type, "application/pdf") !== false && $index_pdf) {
         $html = "This is a PDF";
     }
@@ -328,7 +333,7 @@ function get_links($html, $parent_url, $regexp)
 
 function scan_url($url)
 {
-    global $scanned, $deferredLinks, $file_stream, $freq, $priority, $enable_modified, $enable_priority, $enable_frequency, $max_depth, $depth, $real_site, $indexed;
+    global $scanned, $deferredLinks, $file_stream, $freq, $priority, $enable_priority, $enable_frequency, $max_depth, $depth, $real_site, $indexed;
     $depth++;
 
     logger("Scanning $url", 2);
@@ -347,7 +352,7 @@ function scan_url($url)
 
     //Note that URL has been scanned
     $scanned[$url] = 1;
-    
+
     //Send cURL request
     list($html, $modified, $is_image) = get_data($url);
 
@@ -358,9 +363,6 @@ function scan_url($url)
     if (!$html) {
         logger("Invalid Document. Rejecting.", 1);
         return $depth--;
-    }
-    if (!$enable_modified) {
-        unset($modified);
     }
 
     if (strpos($url, "&") && strpos($url, ";") === false) {
@@ -375,13 +377,13 @@ function scan_url($url)
     if ($enable_priority) {
         $map_row .= "<priority>$priority</priority>\n";
     }
-    if (!empty($modified)) {
+    if ($modified) {
         $map_row .= "   <lastmod>$modified</lastmod>\n";
     }
     $map_row .= "</url>\n";
     fwrite($file_stream, $map_row);
     $indexed++;
-    logger("Added: " . $url . ((!empty($modified)) ? " [Modified: " . $modified . "]" : ''), 0);
+    logger("Added: " . $url . (($modified) ? " [Modified: " . $modified . "]" : ''), 0);
     unset($is_image, $map_row);
 
     // Extract urls from <a href="??"></a>
