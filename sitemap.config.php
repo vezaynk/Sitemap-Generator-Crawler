@@ -2,9 +2,9 @@
 /*
 Sitemap Generator by Slava Knyazev. Further acknowledgements in the README.md file. 
 
-Website: https://www.knyz.org/
+Website: https://www.knyazev.io
 I also live on GitHub: https://github.com/knyzorg
-Contact me: Slava@KNYZ.org
+Contact me: Slava@Knyazev.io
 */
 
 //Make sure to use the latest revision by downloading from github: https://github.com/knyzorg/Sitemap-Generator-Crawler
@@ -24,7 +24,7 @@ It is recommended you don't remove the above for future reference.
 */
 
 // Default site to crawl
-$site = "https://www.knyz.org/";
+$site = "http://www.knyazev.io";
 
 // Default sitemap filename
 $file = "sitemap.xml";

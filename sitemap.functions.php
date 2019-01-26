@@ -387,10 +387,10 @@ function scan_url($url)
     unset($is_image, $map_row);
 
     // Extract urls from <a href="??"></a>
-    $ahrefs = get_links($html, $url, "<a\s[^>]*href=(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>");
+    $ahrefs = get_links($html, $url, "<a\s[^>]*href[\s]*=[\s]*(\"|'??)([^\" >]*?)\\1[^>]*>(.*)<\/a>");
 
     // Extract urls from <frame src="??">
-    $framesrc = get_links($html, $url, "<frame\s[^>]*src=(\"|'??)([^\" >]*?)\\1[^>]*>");
+    $framesrc = get_links($html, $url, "<frame\s[^>]*src[\s]*=[\s]*(\"|'??)([^\" >]*?)\\1[^>]*>");
 
     $links = array_filter(array_merge($ahrefs, $framesrc), function ($item) use (&$deferredLinks) {
         return $item && !isset($deferredLinks[$item]);
