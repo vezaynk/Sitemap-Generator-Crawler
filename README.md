@@ -14,7 +14,7 @@
  - Non-restrictive licensing
  
 ## Usage
-Usage is pretty strait forward:
+Usage is pretty straight forward:
  - Configure the crawler by modifying the config section of the `sitemap.php` file
     - Select the file to which the sitemap will be saved
     - Select URL to crawl
