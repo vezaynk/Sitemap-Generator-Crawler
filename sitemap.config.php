@@ -39,6 +39,9 @@ $enable_frequency = false;
 // Show priority
 $enable_priority = false;
 
+// Enable skipping of "noindex" pages
+$noindex = true;
+
 // Default values for changefreq and priority
 $freq = "daily";
 $priority = "1";

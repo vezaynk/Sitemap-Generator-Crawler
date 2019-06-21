@@ -114,7 +114,7 @@ fclose($file_stream);
 
 // Generate and print out statistics
 $time_elapsed_secs = round(microtime(true) - $start, 2);
-logger("Sitemap has been generated in " . $time_elapsed_secs . " second" . (($time_elapsed_secs >= 1 ? 's' : '') . "and saved to $file"), 0);
+logger("Sitemap has been generated in " . $time_elapsed_secs . " second" . (($time_elapsed_secs >= 1 ? 's' : '') . " and saved to $file"), 0);
 $size = sizeof($scanned);
 logger("Scanned a total of $size pages and indexed $indexed pages.", 0);
 
