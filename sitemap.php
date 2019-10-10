@@ -21,12 +21,12 @@ $color = false;
 $version_script = 2;
 
 if ($version_script != $version_functions || $version_functions != $version_config){
-	logger("Script versions mismatch!",3);
-	logger("Update necessary",3);
-	logger("Version of sitemap.functions.php " .$version_functions ,3);
-	logger("Version of sitemap.config.php " .$version_config ,3);
-	logger("Version of sitemap.php " .$version_script ,3);
-	logger("Download new files here: https://www.github.com/knyzorg/sitemap-generator-crawler" ,3);
+	logger("script versions mismatch!",3);
+	logger("update necessary",3);
+	logger("version of sitemap.functions.php " .$version_functions ,3);
+	logger("version of sitemap.config.php " .$version_config ,3);
+	logger("version of sitemap.php " .$version_script ,3);
+	logger("download new files here: https://www.github.com/knyzorg/sitemap-generator-crawler" ,3);
 	die("Stopped.");
 }
 
