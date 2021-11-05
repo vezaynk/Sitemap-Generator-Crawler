@@ -15,7 +15,7 @@
  
 ## Usage
 Usage is pretty straight forward:
- - Configure the crawler by modifying the config section of the `sitemap.php` file
+ - Configure the crawler by modifying the config file `sitemap.config.php`
     - Select the file to which the sitemap will be saved
     - Select URL to crawl
     - Configure blacklists, accepts the use of wildcards (example: http://example.com/private/* and *.jpg)
