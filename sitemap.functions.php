@@ -333,7 +333,13 @@ function get_links($html, $parent_url, $regexp)
 
 function scan_url($url)
 {
-    global $scanned, $deferredLinks, $file_stream, $freq, $priority, $enable_priority, $enable_frequency, $max_depth, $depth, $real_site, $indexed;
+    global $scanned, $deferredLinks, $file_stream, $freq, $priority, $enable_priority, $enable_frequency, $max_depth, $depth, $real_site, $indexed, $noindex;
+    if ($depth > 6) {
+        $priority = .1;
+    } else {
+        $pribydepth = array ( 1, .8, .64, .5, .32, .25, .1 );
+        $priority = $pribydepth[$depth];
+    }
     $depth++;
 
     logger("Scanning $url", 2);
@@ -362,6 +368,11 @@ function scan_url($url)
 
     if (!$html) {
         logger("Invalid Document. Rejecting.", 1);
+        return $depth--;
+    }
+
+    if ($noindex && (preg_match_all('/\<meta.*?\>/mis',$html,$ar) and strstr(join(',',$ar[0]),'noindex'))) {
+        logger("This page is set to noindex.", 1);
         return $depth--;
     }
 

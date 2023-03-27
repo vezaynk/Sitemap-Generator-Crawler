@@ -14,6 +14,7 @@ Usage is pretty strait forward:
 - Configure the crawler by editing this file.
 - Select the file to which the sitemap will be saved
 - Select URL to crawl
+- Configure noindex (set to true by default) "true"  means that pages set to "noindex" will not be added to the sitemap
 - Configure blacklists, accepts the use of wildcards (example: http://example.com/private/* and *.jpg)
 - Generate sitemap
 - Either send a GET request to this script or run it from the command line (refer to README file)
@@ -38,6 +39,9 @@ $enable_frequency = false;
 
 // Show priority
 $enable_priority = false;
+
+// Enable skipping of "noindex" pages
+$noindex = true;
 
 // Default values for changefreq and priority
 $freq = "daily";
